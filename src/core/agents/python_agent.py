@@ -5,11 +5,11 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 import pickle
 from langchain_core.messages import HumanMessage, AIMessage
-from langgraph.graph import StateGraph
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 from src.config.settings import config
 from src.models.data_models import InputData, AnalysisResult, ChatMessage
-from src.core.graph.state import AgentState
-from src.core.graph.nodes import call_model, call_tools, route_to_tools
+from src.core.graph.tools import PythonAnalysisTool
 from src.utils.file_utils import file_manager
 
 class PythonAnalysisAgent:
@@ -18,24 +18,16 @@ class PythonAnalysisAgent:
     def __init__(self):
         """Initialize the analysis agent."""
         self.reset_state()
-        self.graph = self._create_graph()
-    
-    def _create_graph(self) -> StateGraph:
-        """Create the LangGraph workflow."""
-        workflow = StateGraph(AgentState)
+        self.llm = ChatOpenAI(
+            model=config.OPENAI_MODEL,
+            temperature=0.1,
+            api_key=config.OPENAI_API_KEY
+        )
+        self.python_tool = PythonAnalysisTool()
         
-        # Add nodes
-        workflow.add_node('agent', call_model)
-        workflow.add_node('tools', call_tools)
-        
-        # Add edges
-        workflow.add_conditional_edges('agent', route_to_tools)
-        workflow.add_edge('tools', 'agent')
-        
-        # Set entry point
-        workflow.set_entry_point('agent')
-        
-        return workflow.compile()
+        # Load the main prompt
+        with open(config.MAIN_PROMPT_PATH, 'r', encoding='utf-8') as f:
+            self.main_prompt = f.read()
     
     def reset_state(self):
         """Reset the agent state."""
@@ -44,53 +36,129 @@ class PythonAnalysisAgent:
         self.output_image_paths: Dict[int, List[str]] = {}
         self.analysis_results: List[AnalysisResult] = []
     
-    def process_query(self, user_query: str, input_data: List[InputData]) -> AnalysisResult:
+    def process_query(self, user_query: str, input_data: List[InputData]) -> Dict[str, Any]:
         """Process a user query and return analysis results."""
-        # Convert to LangChain messages
-        messages = [HumanMessage(content=user_query)]
+        try:
+            print(f"Processing query: {user_query}")
+            print(f"Input data: {len(input_data)} datasets")
+            
+            # Prepare the prompt with context
+            context = self._prepare_context(input_data)
+            print(f"Context prepared, length: {len(context)}")
+            
+            # Create the full prompt
+            full_prompt = f"""
+{self.main_prompt}
+
+Contexto de los datos:
+{context}
+
+Consulta del usuario: {user_query}
+
+**INSTRUCCIONES IMPORTANTES:**
+- Si el usuario pide crear gráficas, visualizaciones, análisis estadísticos o cualquier procesamiento de datos, DEBES incluir código Python en tu respuesta.
+- El código debe estar en bloques markdown con ```python al inicio y ``` al final.
+- Para gráficas, usa plotly y almacena las figuras en la lista `plotly_figures`.
+- Para análisis estadísticos, usa print() para mostrar los resultados.
+
+Por favor, analiza los datos y responde a la consulta del usuario. Si necesitas ejecutar código Python, inclúyelo en tu respuesta.
+"""
+            print("Sending request to LLM...")
+            
+            # Get response from LLM
+            response = self.llm.invoke(full_prompt)
+            print(f"LLM response received: {len(response.content)} characters")
+            
+            # Check if response contains code that needs to be executed
+            if "```python" in response.content:
+                print("Python code detected, executing...")
+                # Extract and execute Python code
+                code_result = self.python_tool.run(response.content, input_data)
+                print(f"Code execution result: {len(code_result)} characters")
+                
+                # Get updated response with execution results (without showing code to user)
+                # Remove code blocks from response for user display
+                import re
+                clean_response = re.sub(r'```python.*?```', '', response.content, flags=re.DOTALL).strip()
+                final_response = f"{clean_response}\n\n**Resultado de la ejecución:**\n{code_result}"
+            else:
+                print("No Python code detected")
+                # Check if user is asking for visualizations or analysis
+                visualization_keywords = ['gráfica', 'grafica', 'gráfico', 'grafico', 'histograma', 'dispersión', 'dispersion', 'correlación', 'correlacion', 'análisis', 'analisis', 'estadística', 'estadistica', 'distribución', 'distribucion']
+                if any(keyword in user_query.lower() for keyword in visualization_keywords):
+                    print("Visualization requested but no code generated, prompting for code...")
+                    # Ask the LLM to generate code for visualization
+                    code_prompt = f"""
+El usuario pidió: "{user_query}"
+
+Necesitas generar código Python para crear la visualización solicitada. Responde SOLO con el código Python necesario, sin explicaciones adicionales.
+
+```python
+# Código para {user_query}
+"""
+                    code_response = self.llm.invoke(code_prompt)
+                    if "```python" in code_response.content:
+                        print("Generated code for visualization, executing...")
+                        code_result = self.python_tool.run(code_response.content, input_data)
+                        final_response = f"{response.content}\n\n**Resultado de la ejecución:**\n{code_result}"
+                    else:
+                        final_response = response.content
+                else:
+                    final_response = response.content
+            
+            # Track any new images created
+            new_images = self.python_tool.get_latest_images()
+            print(f"New images created: {len(new_images)}")
+            print(f"Image paths: {new_images}")
+            
+            result = {
+                'response': final_response,
+                'code': code_result if "```python" in response.content else None,
+                'output_image_paths': new_images
+            }
+            
+            print("Query processing completed successfully")
+            return result
+            
+        except Exception as e:
+            print(f"Error in process_query: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {
+                'response': f"Error procesando la consulta: {str(e)}",
+                'code': None,
+                'output_image_paths': []
+            }
+    
+    def _prepare_context(self, input_data: List[InputData]) -> str:
+        """Prepare context information from input data."""
+        context_parts = []
         
-        # Prepare input state
-        starting_image_paths = set(sum(self.output_image_paths.values(), []))
-        input_state = {
-            "messages": messages,
-            "output_image_paths": list(starting_image_paths),
-            "input_data": input_data,
-        }
+        for data in input_data:
+            try:
+                # Load and analyze the dataset
+                df = file_manager.load_dataframe(data.data_path.name)
+                
+                context_parts.append(f"""
+Dataset: {data.variable_name}
+Archivo: {data.data_path.name}
+Descripción: {data.data_description}
+Forma: {df.shape}
+Columnas: {list(df.columns)}
+Tipos de datos: {df.dtypes.to_dict()}
+Primeras filas:
+{df.head().to_string()}
+
+**IMPORTANTE**: Usa '{data.variable_name}' como nombre de la variable para acceder a este dataset en tu código Python.
+""")
+            except Exception as e:
+                context_parts.append(f"""
+Dataset: {data.variable_name}
+Archivo: {data.data_path.name}
+Error al cargar: {str(e)}
+""")
         
-        # Execute the graph
-        result = self.graph.invoke(input_state, {"recursion_limit": 25})
-        
-        # Update state
-        from datetime import datetime
-        current_time = datetime.now().strftime("%H:%M:%S")
-        
-        self.chat_history.extend([
-            ChatMessage(
-                content=msg.content, 
-                sender="user" if isinstance(msg, HumanMessage) else "assistant",
-                timestamp=current_time
-            )
-            for msg in result["messages"]
-        ])
-        
-        # Track new images
-        new_image_paths = set(result["output_image_paths"]) - starting_image_paths
-        if new_image_paths:
-            self.output_image_paths[len(self.chat_history) - 1] = list(new_image_paths)
-        
-        # Store intermediate outputs
-        if "intermediate_outputs" in result:
-            self.intermediate_outputs.extend(result["intermediate_outputs"])
-        
-        # Create analysis result
-        analysis_result = AnalysisResult(
-            query=user_query,
-            response=result["messages"][-1].content if result["messages"] else "",
-            intermediate_outputs=result.get("intermediate_outputs", [])
-        )
-        
-        self.analysis_results.append(analysis_result)
-        return analysis_result
+        return "\n".join(context_parts)
     
     def get_chat_history(self) -> List[ChatMessage]:
         """Get the chat history."""

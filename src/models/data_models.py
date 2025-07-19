@@ -8,62 +8,131 @@ import pandas as pd
 
 @dataclass
 class InputData:
-    """Model for input data files."""
+    """Represents input data for analysis."""
     variable_name: str
     data_path: Path
     data_description: str = ""
-    data_frame: Optional[pd.DataFrame] = None
-    
-    def __post_init__(self):
-        """Load the data frame if path exists."""
-        if self.data_path.exists() and self.data_frame is None:
-            try:
-                self.data_frame = pd.read_csv(self.data_path)
-            except Exception as e:
-                raise ValueError(f"Error loading data from {self.data_path}: {e}")
-
-@dataclass
-class DatasetInfo:
-    """Model for dataset information."""
-    filename: str
-    description: str = ""
-    coverage: str = ""
-    features: List[str] = field(default_factory=list)
-    usage: List[str] = field(default_factory=list)
-    linkage: str = ""
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return {
-            "description": self.description,
-            "coverage": self.coverage,
-            "features": self.features,
-            "usage": self.usage,
-            "linkage": self.linkage
-        }
 
 @dataclass
 class ChatMessage:
-    """Model for chat messages."""
+    """Represents a chat message."""
+    role: str  # 'user' or 'assistant'
     content: str
-    sender: str  # "user" or "assistant"
     timestamp: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class AnalysisResult:
-    """Model for analysis results."""
+    """Represents the result of an analysis."""
     query: str
     response: str
-    code: Optional[str] = None
-    visualizations: List[str] = field(default_factory=list)
-    intermediate_outputs: List[Dict[str, Any]] = field(default_factory=list)
-    timestamp: Optional[str] = None
+    code_executed: Optional[str] = None
+    output_image_paths: List[str] = field(default_factory=list)
+    error: Optional[str] = None
 
 @dataclass
+class DatasetInfo:
+    """Represents information about a dataset."""
+    filename: str
+    description: str
+    coverage: Optional[str] = None
+    features: List[str] = field(default_factory=list)
+    usage: Optional[str] = None
+    linkage: Optional[str] = None
+
 class AppState:
-    """Model for application state."""
-    selected_files: List[str] = field(default_factory=list)
-    chat_history: List[ChatMessage] = field(default_factory=list)
-    analysis_results: List[AnalysisResult] = field(default_factory=list)
-    current_dataset_info: Dict[str, DatasetInfo] = field(default_factory=dict) 
+    """Centralized state management for the Streamlit application."""
+    
+    def __init__(self):
+        self._selected_files: List[str] = []
+        self._data_dictionary: Dict[str, Any] = {}
+        self._chat_history: List[ChatMessage] = []
+        self._analysis_results: List[AnalysisResult] = []
+        self._debug_mode: bool = False
+        
+    @property
+    def selected_files(self) -> List[str]:
+        """Get selected files."""
+        return self._selected_files.copy()
+    
+    @selected_files.setter
+    def selected_files(self, files: List[str]):
+        """Set selected files."""
+        self._selected_files = files.copy() if files else []
+    
+    @property
+    def data_dictionary(self) -> Dict[str, Any]:
+        """Get data dictionary."""
+        return self._data_dictionary.copy()
+    
+    @data_dictionary.setter
+    def data_dictionary(self, dictionary: Dict[str, Any]):
+        """Set data dictionary."""
+        self._data_dictionary = dictionary.copy() if dictionary else {}
+    
+    @property
+    def chat_history(self) -> List[ChatMessage]:
+        """Get chat history."""
+        return self._chat_history.copy()
+    
+    def add_chat_message(self, message: ChatMessage):
+        """Add a chat message to history."""
+        self._chat_history.append(message)
+    
+    def clear_chat_history(self):
+        """Clear chat history."""
+        self._chat_history.clear()
+    
+    @property
+    def analysis_results(self) -> List[AnalysisResult]:
+        """Get analysis results."""
+        return self._analysis_results.copy()
+    
+    def add_analysis_result(self, result: AnalysisResult):
+        """Add an analysis result."""
+        self._analysis_results.append(result)
+    
+    def clear_analysis_results(self):
+        """Clear analysis results."""
+        self._analysis_results.clear()
+    
+    @property
+    def debug_mode(self) -> bool:
+        """Get debug mode status."""
+        return self._debug_mode
+    
+    @debug_mode.setter
+    def debug_mode(self, enabled: bool):
+        """Set debug mode."""
+        self._debug_mode = enabled
+    
+    def get_dataset_description(self, filename: str) -> str:
+        """Get description for a specific dataset."""
+        return self._data_dictionary.get(filename, {}).get('description', '')
+    
+    def update_dataset_description(self, filename: str, description: str):
+        """Update description for a specific dataset."""
+        if filename not in self._data_dictionary:
+            self._data_dictionary[filename] = {}
+        self._data_dictionary[filename]['description'] = description
+    
+    def has_selected_files(self) -> bool:
+        """Check if there are selected files."""
+        return len(self._selected_files) > 0
+    
+    def get_input_data_list(self, uploads_dir: Path) -> List[InputData]:
+        """Get list of InputData objects for selected files."""
+        return [
+            InputData(
+                variable_name=f"{file.split('.')[0]}", 
+                data_path=uploads_dir / file, 
+                data_description=self.get_dataset_description(file)
+            ) 
+            for file in self._selected_files
+        ]
+    
+    def reset(self):
+        """Reset all state to initial values."""
+        self._selected_files.clear()
+        self._chat_history.clear()
+        self._analysis_results.clear()
+        self._debug_mode = False 

@@ -12,7 +12,7 @@ sys.path.append(str(Path(__file__).parent / "src"))
 from src.config.settings import config
 from src.utils.file_utils import file_manager
 from src.core.agents.python_agent import PythonAnalysisAgent
-from src.models.data_models import InputData, DatasetInfo
+from src.models.data_models import InputData, DatasetInfo, AppState, ChatMessage, AnalysisResult
 from src.ui.components.header import render_header
 from src.ui.components.file_upload import render_file_upload, render_file_selector
 from src.ui.components.chat_interface import render_chat_interface, render_debug_section
@@ -25,48 +25,84 @@ def load_css():
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 def initialize_session_state():
-    """Initialize Streamlit session state."""
+    """Initialize Streamlit session state with AppState."""
+    if 'app_state' not in st.session_state:
+        st.session_state.app_state = AppState()
+    
     if 'agent' not in st.session_state:
         st.session_state.agent = PythonAnalysisAgent()
     
-    if 'data_dictionary' not in st.session_state:
-        st.session_state.data_dictionary = file_manager.load_data_dictionary()
+    # Load data dictionary into app state if not already loaded
+    if not st.session_state.app_state.data_dictionary:
+        st.session_state.app_state.data_dictionary = file_manager.load_data_dictionary()
 
 def handle_chat_submit(user_query: str):
-    """Handle chat submission."""
+    """Handle chat submission using AppState."""
+    print(f"handle_chat_submit called with: {user_query}")
+    
     if not user_query.strip():
+        print("Empty query, returning")
         return
     
     try:
-        # Get selected files from the widget's session state
-        selected_files = st.session_state.get('selected_files', [])
+        app_state = st.session_state.app_state
+        print(f"App state initialized, selected files: {len(app_state.selected_files)}")
         
-        if not selected_files:
+        if not app_state.has_selected_files():
+            print("No files selected")
             st.error("No hay archivos seleccionados para analizar.")
             return
         
-        # Prepare input data
-        input_data_list = [
-            InputData(
-                variable_name=f"{file.split('.')[0]}", 
-                data_path=file_manager.uploads_dir / file, 
-                data_description=st.session_state.data_dictionary.get(file, {}).get('description', '')
-            ) 
-            for file in selected_files
-        ]
+        # Add user message to chat history
+        app_state.add_chat_message(ChatMessage(
+            role="user",
+            content=user_query
+        ))
+        print("User message added to chat history")
+        
+        # Prepare input data using AppState
+        input_data_list = app_state.get_input_data_list(file_manager.uploads_dir)
+        print(f"Input data list prepared: {len(input_data_list)} items")
         
         # Process query
+        print("Calling agent.process_query...")
         result = st.session_state.agent.process_query(user_query, input_data_list)
+        print(f"Agent returned result: {result}")
         
-        # Note: st.rerun() is not needed here as Streamlit will automatically
-        # update the UI when the session state changes
+        # Add assistant response to chat history
+        assistant_response = result.get('response', 'No se pudo procesar la consulta.')
+        print(f"Adding assistant response to chat history: {len(assistant_response)} characters")
+        
+        app_state.add_chat_message(ChatMessage(
+            role="assistant",
+            content=assistant_response
+        ))
+        print(f"Chat history after adding assistant message: {len(app_state.chat_history)} messages")
+        
+        # Add analysis result
+        analysis_result = AnalysisResult(
+            query=user_query,
+            response=result.get('response', ''),
+            code_executed=result.get('code', ''),
+            output_image_paths=result.get('output_image_paths', [])
+        )
+        app_state.add_analysis_result(analysis_result)
         
     except Exception as e:
-        st.error(f"Error processing query: {str(e)}")
+        error_msg = f"Error processing query: {str(e)}"
+        st.error(error_msg)
+        
+        # Add error message to chat history
+        st.session_state.app_state.add_chat_message(ChatMessage(
+            role="assistant",
+            content=f"❌ {error_msg}"
+        ))
 
 def render_data_management_tab():
-    """Render the data management tab."""
+    """Render the data management tab using AppState."""
     st.header("📊 Gestión de Datos")
+    
+    app_state = st.session_state.app_state
     
     # Data source selector
     data_source = st.radio(
@@ -82,8 +118,10 @@ def render_data_management_tab():
         # File selection section
         selected_files = render_file_selector()
         
-        # Use selected_files directly from the widget
+        # Update app state with selected files
         if selected_files:
+            app_state.selected_files = selected_files
+            
             # File preview tabs
             file_tabs = st.tabs(selected_files)
             new_descriptions = {}
@@ -99,8 +137,8 @@ def render_data_management_tab():
                         # Dataset information
                         st.subheader("Información del dataset")
                         
-                        # Get current description
-                        current_description = st.session_state.data_dictionary.get(filename, {}).get('description', '')
+                        # Get current description from app state
+                        current_description = app_state.get_dataset_description(filename)
                         
                         # Description input
                         new_descriptions[filename] = st.text_area(
@@ -110,9 +148,9 @@ def render_data_management_tab():
                             help="Proporciona una descripción de este dataset"
                         )
                         
-                        # Display existing info
-                        if filename in st.session_state.data_dictionary:
-                            info = st.session_state.data_dictionary[filename]
+                        # Display existing info from data dictionary
+                        if filename in app_state.data_dictionary:
+                            info = app_state.data_dictionary[filename]
                             
                             if 'coverage' in info:
                                 st.write(f"**Cobertura:** {info['coverage']}")
@@ -140,11 +178,9 @@ def render_data_management_tab():
             if st.button("💾 Guardar descripciones"):
                 for filename, description in new_descriptions.items():
                     if description:
-                        if filename not in st.session_state.data_dictionary:
-                            st.session_state.data_dictionary[filename] = {}
-                        st.session_state.data_dictionary[filename]['description'] = description
+                        app_state.update_dataset_description(filename, description)
                 
-                if file_manager.save_data_dictionary(st.session_state.data_dictionary):
+                if file_manager.save_data_dictionary(app_state.data_dictionary):
                     st.success("¡Descripciones guardadas exitosamente!")
                 else:
                     st.error("Error al guardar las descripciones")
@@ -161,25 +197,53 @@ def render_data_management_tab():
         st.markdown("</div>", unsafe_allow_html=True)
 
 def render_chat_tab():
-    """Render the chat interface tab."""
+    """Render the chat interface tab using AppState."""
     st.header("💬 Interfaz de Chat")
     
-    # Get selected files from the widget's session state
-    selected_files = st.session_state.get('selected_files', [])
+    app_state = st.session_state.app_state
     
-    if not selected_files:
+    if not app_state.has_selected_files():
         st.info("Por favor, selecciona archivos para analizar en la pestaña de Gestión de Datos primero.")
         return
     
     render_chat_interface(
         agent=st.session_state.agent,
         on_submit=handle_chat_submit,
-        selected_files=selected_files
+        selected_files=app_state.selected_files
     )
 
 def render_debug_tab():
-    """Render the debug tab."""
+    """Render the debug tab using AppState."""
     st.header("🔍 Depuración")
+    
+    app_state = st.session_state.app_state
+    
+    # Debug controls
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🗑️ Limpiar historial"):
+            app_state.clear_chat_history()
+            st.success("Historial limpiado")
+    
+    with col2:
+        if st.button("🗑️ Limpiar resultados"):
+            app_state.clear_analysis_results()
+            st.success("Resultados limpiados")
+    
+    with col3:
+        if st.button("🔄 Reiniciar estado"):
+            app_state.reset()
+            st.success("Estado reiniciado")
+    
+    # Debug information
+    st.subheader("Estado de la aplicación")
+    st.write(f"**Archivos seleccionados:** {len(app_state.selected_files)}")
+    st.write(f"**Mensajes en historial:** {len(app_state.chat_history)}")
+    st.write(f"**Resultados de análisis:** {len(app_state.analysis_results)}")
+    st.write(f"**Modo debug:** {app_state.debug_mode}")
+    
+    # Render debug section
     render_debug_section(st.session_state.agent)
 
 def main():
@@ -198,19 +262,11 @@ def main():
     # Initialize session state
     initialize_session_state()
     
-    # Validate configuration
-    try:
-        config.validate_config()
-    except ValueError as e:
-        st.error(f"Configuration Error: {e}")
-        st.info("Please set your OPENAI_API_KEY in the .env file")
-        st.stop()
-    
     # Render header
     render_header()
     
     # Main tabs
-    tab1, tab2, tab3 = st.tabs(["📊 Gestión de Datos", "💬 Interfaz de Chat", "🔍 Depuración"])
+    tab1, tab2, tab3 = st.tabs(["📊 Gestión de Datos", "💬 Chat", "🔍 Debug"])
     
     with tab1:
         render_data_management_tab()

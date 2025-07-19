@@ -29,6 +29,9 @@ class AppConfig:
     # Data files
     DATA_DICTIONARY_FILE: Path = BASE_DIR / "data_dictionary.json"
     
+    # Prompts
+    MAIN_PROMPT_PATH: Path = BASE_DIR / "src" / "core" / "prompts" / "main_prompt.md"
+    
     # API Configuration
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")

@@ -128,10 +128,8 @@ class PDFExporter:
         story.append(Paragraph(f"Reporte generado el: {export_time}", self.styles['CustomTimestamp']))
         story.append(Spacer(1, 20))
     
-    def _add_executive_summary(self, story: List, agent: PythonAnalysisAgent):
+    def _add_executive_summary(self, story: List, chat_history: List[ChatMessage], analysis_results: List):
         """Add executive summary with key insights and visualizations."""
-        chat_history = agent.get_chat_history()
-        
         if not chat_history:
             return
         
@@ -142,7 +140,7 @@ class PDFExporter:
         current_images = []
         
         for msg_index, msg in enumerate(chat_history):
-            if msg.sender == "user":
+            if msg.role == "user":
                 # If we have a previous Q&A pair, save it
                 if current_user_question and current_ai_response:
                     qa_pairs.append({
@@ -156,10 +154,11 @@ class PDFExporter:
                 current_ai_response = None
                 current_images = []
                 
-            elif msg.sender == "assistant":
+            elif msg.role == "assistant":
                 current_ai_response = msg.content
-                # Get images for this response
-                current_images = agent.get_output_images(msg_index)
+                # Get images for this response from analysis results
+                if msg_index < len(analysis_results):
+                    current_images = analysis_results[msg_index].output_image_paths if hasattr(analysis_results[msg_index], 'output_image_paths') else []
         
         # Add the last Q&A pair
         if current_user_question and current_ai_response:
@@ -187,8 +186,14 @@ class PDFExporter:
             # Add visualizations
             for image_path in qa_pair['images']:
                 try:
-                    fig = agent.load_plotly_figure(image_path)
-                    if fig:
+                    # Load plotly figure from pickle file
+                    import pickle
+                    figure_path = config.PLOTLY_FIGURES_DIR / image_path
+                    
+                    if figure_path.exists():
+                        with open(figure_path, "rb") as f:
+                            fig = pickle.load(f)
+                        
                         # Save plotly figure as image
                         img_temp_path = self._save_plotly_figure(fig, image_path)
                         if img_temp_path and os.path.exists(img_temp_path):
@@ -204,11 +209,11 @@ class PDFExporter:
                                 self.temp_files = []
                             self.temp_files.append(img_temp_path)
                         else:
-                            st.warning(f"No se pudo crear la imagen temporal para {image_path}")
+                            print(f"No se pudo crear la imagen temporal para {image_path}")
                     else:
-                        st.warning(f"No se pudo cargar la figura de plotly para {image_path}")
+                        print(f"No se encontró el archivo de figura: {figure_path}")
                 except Exception as e:
-                    st.warning(f"No se pudo incluir la imagen {image_path}: {str(e)}")
+                    print(f"No se pudo incluir la imagen {image_path}: {str(e)}")
                     print(f"Debug - Error details for {image_path}: {e}")
             
             story.append(Spacer(1, 20))
@@ -292,7 +297,7 @@ class PDFExporter:
                 
                 story.append(Spacer(1, 10))
     
-    def export_chat_to_pdf(self, agent: PythonAnalysisAgent, filename: str = None) -> str:
+    def export_chat_to_pdf(self, chat_history: List[ChatMessage], analysis_results: List, filename: str = None) -> str:
         """Export chat conversation to PDF."""
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -317,8 +322,8 @@ class PDFExporter:
             # Add header
             self._create_header(story)
             
-            # Add executive summary instead of full conversation
-            self._add_executive_summary(story, agent)
+            # Add executive summary with chat history and analysis results
+            self._add_executive_summary(story, chat_history, analysis_results)
             
             # Build PDF
             doc.build(story)
@@ -346,7 +351,7 @@ class PDFExporter:
         
         return filename
 
-def render_pdf_export_button(agent: PythonAnalysisAgent):
+def render_pdf_export_button():
     """Render PDF export button in the UI."""
     st.subheader("📄 Exportar Conversación")
     
@@ -355,6 +360,19 @@ def render_pdf_export_button(agent: PythonAnalysisAgent):
     with col1:
         if st.button("📊 Exportar a PDF", type="primary", use_container_width=True):
             try:
+                # Get chat history and analysis results from session state
+                if 'app_state' not in st.session_state:
+                    st.error("No hay historial de conversación para exportar")
+                    return
+                
+                app_state = st.session_state.app_state
+                chat_history = app_state.chat_history
+                analysis_results = app_state.analysis_results
+                
+                if not chat_history:
+                    st.error("No hay historial de conversación para exportar")
+                    return
+                
                 # Create exporter
                 exporter = PDFExporter()
                 
@@ -362,8 +380,8 @@ def render_pdf_export_button(agent: PythonAnalysisAgent):
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"Okuo_DataLab_Resumen_Ejecutivo_{timestamp}.pdf"
                 
-                # Export to PDF
-                pdf_path = exporter.export_chat_to_pdf(agent, filename)
+                # Export to PDF with chat history and analysis results
+                pdf_path = exporter.export_chat_to_pdf(chat_history, analysis_results, filename)
                 
                 # Read the PDF file
                 with open(pdf_path, "rb") as pdf_file:
@@ -386,6 +404,7 @@ def render_pdf_export_button(agent: PythonAnalysisAgent):
                     
             except Exception as e:
                 st.error(f"❌ Error al generar PDF: {str(e)}")
+                print(f"Debug - PDF generation error: {e}")
     
     with col2:
         st.info("""

@@ -1,20 +1,98 @@
+# Data files
 *.csv
-.conda/
-__pycache__/
-*.ipynb_checkpoints/
+*.xlsx
+*.xls
+*.json
 *.pkl
-*.png
-*.pdf
 *.pickle
-*.pyc
-*.pyo
-*.pyd
 
-# Environment variables
+# Images and visualizations
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
 .env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Streamlit
+.streamlit/
+
+# Temporary files and directories
+temp_pdf_images/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# API keys and secrets
 .env.local
 .env.*.local
+secrets.json
+config.json
 
-# Temporary files
-temp_pdf_images/
+# Uploads (user data)
+uploads/
+assets/uploads/
+
+# Plotly figures cache
+images/plotly_figures/
+assets/images/plotly_figures/
 
