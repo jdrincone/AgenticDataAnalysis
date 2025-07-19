@@ -1,6 +1,6 @@
 # 🤖 Okuo IA DataLab
 
-> **Laboratorio de Análisis Inteligente de Datos** - Una aplicación web que combina IA conversacional con análisis de datos avanzado.
+> **Laboratorio de Análisis Inteligente de Datos** - Una aplicación web que combina IA conversacional con análisis de datos avanzado y storytelling ejecutivo.
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
@@ -9,16 +9,17 @@
 
 ## 🎯 ¿Qué es Okuo IA DataLab?
 
-Okuo IA DataLab es una aplicación web inteligente que permite a usuarios no técnicos realizar análisis complejos de datos a través de una interfaz conversacional natural. Combina la potencia de la inteligencia artificial con herramientas de visualización avanzadas.
+Okuo IA DataLab es una aplicación web inteligente que permite a usuarios no técnicos realizar análisis complejos de datos a través de una interfaz conversacional natural. Combina la potencia de la inteligencia artificial con herramientas de visualización avanzadas y **storytelling ejecutivo profesional**.
 
 ### ✨ Características Principales
 
 - 🤖 **IA Conversacional**: Análisis de datos mediante lenguaje natural
 - 📊 **Visualizaciones Automáticas**: Gráficos interactivos con Plotly
 - 📁 **Gestión Inteligente de Datos**: Carga y organización de archivos CSV
-- 📄 **Reportes Profesionales**: Exportación automática a PDF
+- 📄 **Reportes Ejecutivos Profesionales**: Exportación automática a PDF con storytelling
+- 🎭 **Storytelling de Datos**: Análisis narrativo que transforma datos en insights ejecutivos
 - 🔍 **Depuración Avanzada**: Herramientas para entender el proceso de análisis
-- 🎨 **UI Moderna**: Interfaz intuitiva con Streamlit
+- 🎨 **UI Moderna**: Interfaz intuitiva con Streamlit y colores corporativos
 
 ## 🚀 Instalación Rápida
 
@@ -85,10 +86,16 @@ MAX_UPLOAD_SIZE=2000
    - "Crea un histograma de la distribución de precios"
    - "Analiza las tendencias en los datos"
 
-### 3. Exportación de Resultados
-1. Usa el botón **"📊 Exportar a PDF"**
-2. Descarga el reporte ejecutivo profesional
-3. Revisa el proceso en **"🔍 Depuración"**
+### 3. Exportación de Reportes Ejecutivos
+1. **Después de una conversación**, usa el botón **"🚀 Generar Reporte Profesional"**
+2. El sistema analizará toda la conversación automáticamente
+3. Generará un **reporte ejecutivo con storytelling** que incluye:
+   - **Resumen ejecutivo** con insights clave
+   - **Análisis detallado** por temas identificados
+   - **Insights estratégicos** y patrones detectados
+   - **Recomendaciones accionables** basadas en datos
+   - **Visualizaciones relevantes** con explicaciones
+4. Descarga el PDF profesional listo para presentación
 
 ## 🏗️ Arquitectura
 
@@ -97,6 +104,8 @@ MAX_UPLOAD_SIZE=2000
 │           Streamlit UI              │
 ├─────────────────────────────────────┤
 │         Python Agent                │
+├─────────────────────────────────────┤
+│      Storytelling Agent             │
 ├─────────────────────────────────────┤
 │        LangGraph Workflow           │
 ├─────────────────────────────────────┤
@@ -108,8 +117,9 @@ MAX_UPLOAD_SIZE=2000
 
 - **`main_app.py`**: Punto de entrada de la aplicación
 - **`PythonAnalysisAgent`**: Agente principal de análisis
+- **`StorytellingAgent`**: Agente especializado en storytelling ejecutivo
 - **`LangGraph Workflow`**: Flujo de trabajo de IA
-- **`PDF Exporter`**: Generación de reportes
+- **`PDF Exporter`**: Generación de reportes profesionales
 - **`File Manager`**: Gestión de archivos
 
 ## 🔧 Tecnologías Utilizadas
@@ -117,7 +127,7 @@ MAX_UPLOAD_SIZE=2000
 ### Frontend
 - **Streamlit**: Framework web para aplicaciones de datos
 - **Plotly**: Visualizaciones interactivas
-- **ReportLab**: Generación de PDFs
+- **ReportLab**: Generación de PDFs profesionales
 
 ### Backend
 - **Python 3.12+**: Lenguaje principal
@@ -153,20 +163,59 @@ IA: "He creado una matriz de correlación que muestra:
      El gráfico está listo para revisar."
 ```
 
-### Análisis Estadístico
+### Reporte Ejecutivo con Storytelling
 ```
-Usuario: "Calcula estadísticas descriptivas"
-IA: "Estadísticas descriptivas del dataset:
+Usuario: [Después de varias preguntas] "Genera un reporte ejecutivo"
+IA: "He analizado toda nuestra conversación y generado un reporte que incluye:
      
-     Ventas:
-     - Media: $1,234
-     - Mediana: $987
-     - Desviación estándar: $456
-     - Mínimo: $100
-     - Máximo: $5,000
+     📋 RESUMEN EJECUTIVO:
+     - 5 insights clave identificados
+     - 3 patrones de negocio detectados
+     - 4 recomendaciones estratégicas
      
-     ¿Te gustaría ver un histograma de la distribución?"
+     📊 ANÁLISIS DETALLADO:
+     - Distribución de ventas por región
+     - Correlación entre marketing y conversiones
+     - Tendencias temporales identificadas
+     
+     🎯 RECOMENDACIONES:
+     - Optimizar presupuesto de marketing en Q4
+     - Expandir operaciones en región Norte
+     - Implementar programa de fidelización
+     
+     El PDF está listo para descargar."
 ```
+
+## 🎭 Storytelling de Datos
+
+### ¿Qué es el Storytelling de Datos?
+
+El **Storytelling de Datos** es una técnica que transforma análisis técnicos en narrativas ejecutivas que:
+- **Conectan insights** con implicaciones de negocio
+- **Presentan datos** como una historia coherente
+- **Generan recomendaciones** accionables y específicas
+- **Facilitan la toma de decisiones** ejecutiva
+
+### Características del Storytelling en Okuo IA DataLab
+
+#### 📋 **Análisis Inteligente de Conversaciones**
+- **Agrupación automática** de preguntas y respuestas por temas
+- **Identificación de patrones** y tendencias en los datos
+- **Extracción de insights** relevantes para el negocio
+- **Generación de recomendaciones** basadas en evidencia
+
+#### 📊 **Reportes Ejecutivos Profesionales**
+- **Resumen ejecutivo** con puntos clave
+- **Análisis detallado** por temas identificados
+- **Insights estratégicos** con implicaciones de negocio
+- **Recomendaciones accionables** priorizadas
+- **Visualizaciones integradas** con explicaciones claras
+
+#### 🎨 **Diseño Corporativo**
+- **Colores corporativos** consistentes
+- **Tipografía profesional** (Inter font)
+- **Estructura clara** y fácil de leer
+- **Formato ejecutivo** listo para presentación
 
 ## 🐛 Solución de Problemas
 
@@ -179,11 +228,15 @@ IA: "Estadísticas descriptivas del dataset:
 ### Error: "OPENAI_API_KEY not found"
 **Solución**: Configurar la variable de entorno en el archivo `.env`
 
+### Error: "StreamlitDuplicateElementKey"
+**Solución**: ✅ **CORREGIDO** - Implementado sistema de claves únicas para elementos UI.
+
 ## 📚 Documentación
 
 - **[Documentación Completa](DOCUMENTATION.md)**: Guía detallada del proyecto
 - **[Diagrama de Arquitectura](ARCHITECTURE_DIAGRAM.md)**: Estructura técnica
 - **[Guía de Desarrollo](DEVELOPER_GUIDE.md)**: Para contribuidores
+- **[Changelog](CHANGELOG.md)**: Historial de cambios
 
 ## 🤝 Contribución
 
@@ -198,47 +251,24 @@ IA: "Estadísticas descriptivas del dataset:
 ### Estándares de Contribución
 
 - **Código**: Seguir PEP 8 y usar type hints
-- **Documentación**: Docstrings en español
-- **Tests**: Agregar tests para nuevas funcionalidades
-- **Commits**: Usar [Conventional Commits](https://conventionalcommits.org/)
+- **Documentación**: Actualizar README y documentación relevante
+- **Testing**: Agregar tests para nuevas funcionalidades
+- **Commits**: Usar mensajes descriptivos y convencionales
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
 ## 🙏 Agradecimientos
 
-- **OpenAI** por proporcionar acceso a GPT-4o
-- **Streamlit** por el framework web
+- **OpenAI** por proporcionar acceso a modelos de lenguaje avanzados
+- **Streamlit** por el framework de interfaz web
 - **LangChain** por las herramientas de IA
 - **Plotly** por las visualizaciones interactivas
-
-## 📞 Contacto
-
-- **Desarrollador**: [Tu Nombre]
-- **Email**: [tu-email@ejemplo.com]
-- **Proyecto**: [https://github.com/tu-usuario/AgenticDataAnalysis](https://github.com/tu-usuario/AgenticDataAnalysis)
-
-## 🔮 Roadmap
-
-### Próximas Características
-- [ ] Conexión a bases de datos
-- [ ] Análisis de series temporales
-- [ ] Machine Learning automático
-- [ ] Exportación a múltiples formatos
-- [ ] Colaboración en tiempo real
-
-### En Desarrollo
-- [ ] Optimización de rendimiento
-- [ ] Más tipos de visualizaciones
-- [ ] Integración con APIs externas
+- **ReportLab** por la generación de PDFs profesionales
 
 ---
 
-<div align="center">
+**¿Listo para transformar tus datos en insights ejecutivos?** 🚀
 
-**¿Te gustó el proyecto? ¡Dale una ⭐!**
-
-*Construido con ❤️ para democratizar el análisis de datos*
-
-</div> 
+[Empezar ahora](https://github.com/tu-usuario/AgenticDataAnalysis) | [Ver documentación](DOCUMENTATION.md) | [Reportar un problema](https://github.com/tu-usuario/AgenticDataAnalysis/issues) 

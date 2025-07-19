@@ -5,6 +5,80 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-07-19
+
+### 🎭 **STORYTELLING EJECUTIVO** - Agente especializado en análisis narrativo y reportes profesionales
+
+#### ✅ **Agregado**
+- **StorytellingAgent**: Nuevo agente especializado en análisis narrativo y generación de reportes ejecutivos
+  - Análisis inteligente de conversaciones completas
+  - Extracción automática de insights relevantes para el negocio
+  - Generación de recomendaciones accionables basadas en datos
+  - Creación de narrativas ejecutivas coherentes
+  - Integración de visualizaciones en reportes profesionales
+
+- **Prompt de Storytelling**: `src/core/prompts/storytelling_prompt.md`
+  - Metodología completa para análisis de conversaciones
+  - Pautas para extracción de insights de negocio
+  - Estructura para generación de recomendaciones
+  - Guías de escritura ejecutiva profesional
+
+- **Exportación PDF Profesional**: Sistema mejorado de generación de reportes
+  - Análisis automático de conversaciones completas
+  - Reportes ejecutivos con storytelling integrado
+  - Estructura profesional con secciones claras
+  - Visualizaciones integradas con explicaciones
+  - Colores corporativos y tipografía Inter
+
+- **Colores Corporativos**: Paleta de colores profesional
+  - Verde primario (#1C8074) - PANTONE 3295 U
+  - Gris secundario (#666666) - PANTONE 426 U
+  - Verde oscuro (#1A494C) - PANTONE 175-16 U
+  - ACCENT_COLOR agregado a configuración
+
+#### 🔧 **Mejorado**
+- **Interfaz de Usuario**: Integración del botón de exportación PDF en chat tab
+  - Botón "🚀 Generar Reporte Profesional" visible después de conversaciones
+  - Estados de carga y feedback visual mejorados
+  - Manejo robusto de claves únicas para elementos Streamlit
+
+- **Gestión de Estado**: Control de renderizado para evitar duplicados
+  - Sistema de claves únicas basado en contadores
+  - Control de renderizado único para componentes PDF
+  - Limpieza automática de flags de estado
+
+- **Manejo de Errores**: Correcciones de conflictos y duplicados
+  - Solucionado error `StreamlitDuplicateElementKey`
+  - Corregido conflicto de estilos ReportLab (`BodyText` → `CustomBodyText`)
+  - Mejorado manejo de archivos temporales
+
+#### 📝 **Documentación**
+- **README.md**: Actualizado con funcionalidades de storytelling
+  - Nueva sección "🎭 Storytelling de Datos"
+  - Ejemplos de uso con reportes ejecutivos
+  - Características del agente especializado
+  - Guías de exportación profesional
+
+- **DOCUMENTATION.md**: Documentación técnica completa
+  - Arquitectura del StorytellingAgent
+  - Metodología de análisis narrativo
+  - Estructura de reportes ejecutivos
+  - Criterios de calidad para storytelling
+
+- **CHANGELOG.md**: Historial detallado de cambios
+  - Documentación de nuevas funcionalidades
+  - Correcciones implementadas
+  - Mejoras en UI/UX
+
+#### 🚀 **Beneficios**
+- **Análisis Ejecutivo**: Transformación de datos técnicos en insights de negocio
+- **Reportes Profesionales**: PDFs listos para presentación ejecutiva
+- **Storytelling Automático**: Narrativas coherentes generadas automáticamente
+- **Recomendaciones Accionables**: Sugerencias específicas y medibles
+- **UI Mejorada**: Interfaz más robusta y profesional
+
+---
+
 ## [1.1.0] - 2024-12-19
 
 ### 🧹 **MAJOR CLEANUP** - Eliminación de código duplicado y mejoras estructurales
@@ -124,6 +198,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Notas de Migración
+
+### Migración de v1.1.0 a v1.2.0
+- **AUTOMÁTICA**: No requiere cambios en el código existente
+- **Nuevas funcionalidades**: Storytelling y reportes ejecutivos disponibles inmediatamente
+- **Mejoras en UI**: Interfaz más robusta y profesional
+- **Beneficios**: Análisis narrativo automático y reportes ejecutivos
 
 ### Migración de v0.9.0 a v1.0.0
 - Actualizar Python a versión 3.12+

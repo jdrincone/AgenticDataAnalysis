@@ -2,16 +2,17 @@
 
 ## 🎯 Descripción General
 
-**Okuo IA DataLab** es una aplicación web inteligente para análisis de datos que combina la potencia de la inteligencia artificial con herramientas de visualización avanzadas. Permite a usuarios no técnicos realizar análisis complejos de datos a través de una interfaz conversacional natural.
+**Okuo IA DataLab** es una aplicación web inteligente para análisis de datos que combina la potencia de la inteligencia artificial con herramientas de visualización avanzadas y **storytelling ejecutivo profesional**. Permite a usuarios no técnicos realizar análisis complejos de datos a través de una interfaz conversacional natural y generar reportes ejecutivos con narrativas coherentes.
 
 ### 🚀 Características Principales
 
 - **🤖 Análisis Inteligente**: IA conversacional que entiende consultas en lenguaje natural
 - **📊 Visualizaciones Automáticas**: Generación automática de gráficos con Plotly
 - **📁 Gestión de Datos**: Carga y gestión de archivos CSV
-- **📄 Exportación PDF**: Generación de reportes ejecutivos profesionales
+- **📄 Exportación PDF Profesional**: Generación de reportes ejecutivos con storytelling
+- **🎭 Storytelling de Datos**: Análisis narrativo que transforma datos en insights ejecutivos
 - **🔍 Depuración**: Herramientas para entender el proceso de análisis
-- **🎨 UI Moderna**: Interfaz intuitiva con Streamlit
+- **🎨 UI Moderna**: Interfaz intuitiva con Streamlit y colores corporativos
 
 ---
 
@@ -28,8 +29,12 @@ AgenticDataAnalysis/
 │   ├── config/              # Configuración de la aplicación
 │   ├── core/                # Lógica de negocio central
 │   │   ├── agents/          # Agentes de IA
+│   │   │   ├── python_agent.py      # Agente principal de análisis
+│   │   │   └── storytelling_agent.py # Agente de storytelling ejecutivo
 │   │   ├── graph/           # Grafo de flujo de trabajo
 │   │   └── prompts/         # Prompts para la IA
+│   │       ├── main_prompt.md       # Prompt principal
+│   │       └── storytelling_prompt.md # Prompt de storytelling
 │   ├── models/              # Modelos de datos
 │   ├── ui/                  # Componentes de interfaz
 │   └── utils/               # Utilidades
@@ -49,8 +54,9 @@ graph TD
     E --> F[LangGraph Workflow]
     F --> G[Python Tools]
     G --> H[Plotly Figures]
-    H --> I[PDF Export]
-    I --> J[Download]
+    H --> I[Storytelling Agent]
+    I --> J[PDF Export]
+    J --> K[Download]
 ```
 
 ---
@@ -74,7 +80,56 @@ def get_chat_history(self) -> List[ChatMessage]
 def load_plotly_figure(self, image_path: str) -> plotly.Figure
 ```
 
-### 2. **LangGraph Workflow** (`src/core/graph/`)
+### 2. **StorytellingAgent** (`src/core/agents/storytelling_agent.py`) 🆕
+
+**Propósito**: Agente especializado en análisis narrativo y generación de reportes ejecutivos.
+
+**Funcionalidades**:
+- ✅ Análisis inteligente de conversaciones
+- ✅ Extracción de insights relevantes para el negocio
+- ✅ Generación de recomendaciones accionables
+- ✅ Creación de narrativas ejecutivas coherentes
+- ✅ Integración de visualizaciones en reportes
+
+**Métodos Clave**:
+```python
+def analyze_conversation(self, chat_history: List[ChatMessage], analysis_results: List[AnalysisResult]) -> List[ConversationInsight]
+def generate_storytelling_pdf(self, chat_history: List[ChatMessage], analysis_results: List[AnalysisResult], filename: str = None) -> str
+def _extract_key_findings_with_prompt(self, answer: str) -> List[str]
+def _generate_recommendations_with_prompt(self, question: str, answer: str) -> List[str]
+```
+
+**Estructura de Insights**:
+```python
+@dataclass
+class ConversationInsight:
+    question: str                    # Pregunta del usuario
+    answer: str                      # Respuesta del agente
+    key_findings: List[str]          # Hallazgos principales
+    data_insights: List[str]         # Insights de datos
+    recommendations: List[str]       # Recomendaciones
+    visualizations: List[str]        # Visualizaciones asociadas
+    confidence_score: float          # Puntuación de confianza
+```
+
+### 3. **Prompts Especializados** (`src/core/prompts/`)
+
+#### **Main Prompt** (`main_prompt.md`)
+- **Propósito**: Guía el comportamiento del agente principal de análisis
+- **Enfoque**: Análisis técnico y ejecución de código Python
+- **Características**: Instrucciones para visualizaciones, estadísticas y procesamiento de datos
+
+#### **Storytelling Prompt** (`storytelling_prompt.md`) 🆕
+- **Propósito**: Guía el análisis narrativo y generación de reportes ejecutivos
+- **Enfoque**: Storytelling de datos y comunicación ejecutiva
+- **Características**:
+  - Metodología de análisis de conversaciones
+  - Extracción de insights de negocio
+  - Generación de recomendaciones accionables
+  - Estructura de reportes ejecutivos
+  - Pautas de escritura profesional
+
+### 4. **LangGraph Workflow** (`src/core/graph/`)
 
 **Propósito**: Define el flujo de trabajo para el procesamiento de consultas.
 
@@ -90,7 +145,7 @@ def load_plotly_figure(self, image_path: str) -> plotly.Figure
 4. **Modelo** genera respuesta
 5. **Ciclo** hasta completar la tarea
 
-### 3. **Modelos de Datos** (`src/models/data_models.py`)
+### 5. **Modelos de Datos** (`src/models/data_models.py`)
 
 **Clases Principales**:
 
@@ -123,7 +178,7 @@ class AnalysisResult:
     intermediate_outputs: List[Dict]  # Salidas intermedias
 ```
 
-### 4. **Configuración** (`src/config/settings.py`)
+### 6. **Configuración** (`src/config/settings.py`)
 
 **Propósito**: Centraliza toda la configuración de la aplicación.
 
@@ -136,6 +191,11 @@ class AppConfig:
     UPLOADS_DIR: Path = ASSETS_DIR / "uploads"
     PLOTLY_FIGURES_DIR: Path = IMAGES_DIR / "plotly_figures" / "pickle"
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
+    
+    # Colores corporativos
+    PRIMARY_COLOR: str = "#1C8074"      # Verde primario
+    SECONDARY_COLOR: str = "#666666"    # Gris
+    ACCENT_COLOR: str = "#1A494C"       # Verde oscuro
 ```
 
 ---
@@ -161,22 +221,78 @@ def render_debug_tab()             # Herramientas de depuración
 **Características**:
 - ✅ Historial de conversación
 - ✅ Visualización de gráficos Plotly
-- ✅ Exportación a PDF
+- ✅ Exportación a PDF con storytelling
 - ✅ Depuración de salidas intermedias
 
-### 3. **PDF Export** (`src/ui/components/pdf_export.py`)
+### 3. **PDF Export** (`src/ui/components/pdf_export.py`) 🆕
 
 **Funcionalidades**:
-- ✅ Generación de reportes ejecutivos
-- ✅ Inclusión de visualizaciones
-- ✅ Estilos profesionales
+- ✅ Generación de reportes ejecutivos con storytelling
+- ✅ Análisis automático de conversaciones
+- ✅ Inclusión de visualizaciones con explicaciones
+- ✅ Estilos profesionales con colores corporativos
 - ✅ Limpieza automática de archivos temporales
 
-**Proceso**:
-1. Carga figuras Plotly desde pickle
-2. Convierte a imágenes PNG temporales
-3. Genera PDF con ReportLab
-4. Limpia archivos temporales
+**Proceso de Generación**:
+1. **Análisis de Conversación**: El StorytellingAgent analiza toda la conversación
+2. **Extracción de Insights**: Identifica hallazgos clave y patrones
+3. **Generación de Recomendaciones**: Crea recomendaciones accionables
+4. **Creación de PDF**: Genera reporte ejecutivo profesional
+5. **Limpieza**: Elimina archivos temporales
+
+**Estructura del Reporte**:
+- **Portada**: Título, fecha y contexto
+- **Resumen Ejecutivo**: Insights clave y recomendaciones principales
+- **Análisis Detallado**: Análisis por temas identificados
+- **Insights Estratégicos**: Patrones y tendencias detectados
+- **Recomendaciones**: Acciones específicas y medibles
+- **Anexos**: Visualizaciones y detalles técnicos
+
+---
+
+## 🎭 Storytelling de Datos
+
+### Metodología de Análisis
+
+#### **1. Análisis de Conversación**
+- **Agrupación de preguntas y respuestas** por temas coherentes
+- **Identificación de progresión lógica** del análisis
+- **Extracción de hallazgos clave** de cada interacción
+- **Reconocimiento de patrones y tendencias** mencionados
+
+#### **2. Extracción de Insights**
+Para cada respuesta del agente, identifica:
+- **Hallazgos estadísticos importantes** (medias, correlaciones, distribuciones)
+- **Patrones y tendencias** detectados en los datos
+- **Anomalías o valores atípicos** significativos
+- **Relaciones entre variables** relevantes para el negocio
+- **Insights de negocio** derivados de los análisis
+
+#### **3. Generación de Storytelling**
+- **Crea una narrativa coherente** que conecte todos los hallazgos
+- **Desarrolla un hilo conductor** que guíe al lector
+- **Presenta los datos como una historia** de descubrimiento
+- **Conecta los insights** con implicaciones de negocio
+
+### Criterios de Calidad
+
+#### **Relevancia**
+- **Enfócate en insights** que impacten el negocio
+- **Prioriza hallazgos** por importancia estratégica
+- **Elimina detalles técnicos** innecesarios
+- **Mantén el foco** en las implicaciones de negocio
+
+#### **Claridad**
+- **Explica conceptos técnicos** de manera accesible
+- **Usa ejemplos concretos** cuando sea posible
+- **Proporciona contexto** para cada hallazgo
+- **Estructura la información** de manera lógica
+
+#### **Accionabilidad**
+- **Cada insight** debe llevar a una recomendación
+- **Las recomendaciones** deben ser específicas y medibles
+- **Incluye pasos concretos** para implementación
+- **Define métricas** para monitorear el progreso
 
 ---
 
@@ -198,164 +314,275 @@ def render_debug_tab()             # Herramientas de depuración
 - ✅ Persistencia de variables
 - ✅ Guardado automático de figuras Plotly
 
-**Librerías Disponibles**:
-```python
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-import sklearn
+### 3. **PDF Generation** (`src/ui/components/pdf_export.py`)
+
+**Tecnologías**:
+- **ReportLab**: Generación de PDFs profesionales
+- **Plotly**: Conversión de gráficos a imágenes
+- **PIL**: Procesamiento de imágenes
+- **Tempfile**: Manejo de archivos temporales
+
+**Características**:
+- **Estilos profesionales** con colores corporativos
+- **Tipografía Inter** para mejor legibilidad
+- **Estructura ejecutiva** con secciones claras
+- **Visualizaciones integradas** con explicaciones
+- **Limpieza automática** de archivos temporales
+
+---
+
+## 🎨 Diseño y UX
+
+### Colores Corporativos
+
+```css
+:root {
+    --primary-color: #1C8074;    /* Verde primario - PANTONE 3295 U */
+    --secondary-color: #666666;  /* Gris - PANTONE 426 U */
+    --accent-color: #1A494C;     /* Verde oscuro - PANTONE 175-16 U */
+    --light-green: #94AF92;      /* Verde claro - PANTONE 7494 U */
+    --very-light-green: #E6ECD8; /* Verde muy claro - PANTONE 152-2 U */
+    --light-gray: #C9C9C9;       /* Gris claro - PANTONE COLOR GRAY 2 U */
+}
 ```
 
----
+### Tipografía
 
-## 🎯 Prompts y Configuración de IA
+- **Fuente Principal**: Inter (Google Fonts)
+- **Peso**: 400 (normal), 600 (semi-bold), 700 (bold)
+- **Tamaños**: 11px (cuerpo), 14px (subtítulos), 18px (títulos), 28px (título principal)
 
-### Prompt Principal (`src/core/prompts/main_prompt.md`)
+### Componentes UI
 
-**Rol**: Científico de datos profesional
+#### **Botones**
+- **Primario**: Verde corporativo con hover effects
+- **Secundario**: Gris con bordes
+- **Exportación**: Iconos descriptivos y estados de carga
 
-**Capacidades**:
-- Ejecutar código Python
-- Crear visualizaciones
-- Explicar conceptos técnicos
+#### **Tarjetas**
+- **Bordes suaves** con sombras sutiles
+- **Espaciado consistente** entre elementos
+- **Colores corporativos** para acentos
 
-**Pautas de Código**:
-- Variables persistentes entre ejecuciones
-- Uso obligatorio de `print()` para salidas
-- Librerías limitadas: pandas, sklearn, plotly
-
-**Paleta de Colores Corporativa**:
-1. #1C8074 (PANTONE 3295 U)
-2. #666666 (PANTONE 426 U)
-3. #1A494C (PANTONE 175-16 U)
-4. #94AF92 (PANTONE 7494 U)
-5. #E6ECD8 (PANTONE 152-2 U)
-6. #C9C9C9 (PANTONE COLOR GRAY 2 U)
+#### **Formularios**
+- **Validación en tiempo real** con feedback visual
+- **Estados de error** claramente marcados
+- **Autocompletado** cuando es apropiado
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🔍 Depuración y Monitoreo
 
-### 1. **Requisitos del Sistema**
-- Python 3.12+
-- pip
-- Acceso a internet (para dependencias)
+### 1. **Debug Tab**
 
-### 2. **Instalación**
-```bash
-# Clonar repositorio
-git clone <repository-url>
-cd AgenticDataAnalysis
+**Funcionalidades**:
+- ✅ Visualización del estado de la aplicación
+- ✅ Historial de conversaciones
+- ✅ Resultados de análisis
+- ✅ Rutas de archivos y configuraciones
 
-# Ejecutar setup
-python3 setup.py
-```
+### 2. **Logging**
 
-### 3. **Configuración**
-```bash
-# Editar .env
-OPENAI_API_KEY=tu_api_key_aqui
-OPENAI_MODEL=gpt-4o
-STREAMLIT_PORT=8501
-```
+**Niveles**:
+- **INFO**: Operaciones normales
+- **WARNING**: Situaciones que requieren atención
+- **ERROR**: Errores que afectan la funcionalidad
+- **DEBUG**: Información detallada para desarrollo
 
-### 4. **Ejecución**
-```bash
-streamlit run main_app.py
-```
+**Ubicación**: `logs/app.log`
+
+### 3. **Manejo de Errores**
+
+**Estrategias**:
+- **Try-catch** en operaciones críticas
+- **Fallbacks** para funcionalidades opcionales
+- **Mensajes de error** claros para el usuario
+- **Logging detallado** para debugging
 
 ---
 
-## 🔍 Solución de Problemas
+## 🚀 Optimización y Rendimiento
 
-### Error: "No such file or directory: temp_pdf_images/"
+### 1. **Gestión de Memoria**
 
-**Causa**: Rutas relativas en lugar de absolutas
-**Solución**: ✅ **CORREGIDO** - Uso de `config.BASE_DIR / "temp_pdf_images"`
+**Estrategias**:
+- **Limpieza automática** de archivos temporales
+- **Persistencia selectiva** de datos importantes
+- **Carga lazy** de visualizaciones grandes
+- **Compresión** de archivos pickle
 
-### Error: "Cannot open resource plotly_*.png"
+### 2. **Optimización de UI**
 
-**Causa**: Archivos temporales no encontrados
-**Solución**: ✅ **CORREGIDO** - Verificación de existencia de archivos
+**Técnicas**:
+- **Renderizado condicional** de componentes pesados
+- **Caché** de resultados de análisis
+- **Debouncing** en inputs de usuario
+- **Lazy loading** de imágenes
 
-### Error: "Missing ScriptRunContext"
+### 3. **Manejo de Archivos**
 
-**Causa**: Ejecutar con `python` en lugar de `streamlit run`
-**Solución**: Usar `streamlit run main_app.py`
-
----
-
-## 📊 Flujo de Uso Típico
-
-### 1. **Carga de Datos**
-1. Navegar a "📊 Gestión de Datos"
-2. Subir archivos CSV
-3. Seleccionar archivos para análisis
-4. Agregar descripciones (opcional)
-
-### 2. **Análisis Conversacional**
-1. Navegar a "💬 Interfaz de Chat"
-2. Hacer preguntas en lenguaje natural
-3. Revisar visualizaciones generadas
-4. Iterar con preguntas adicionales
-
-### 3. **Exportación de Resultados**
-1. Usar botón "📊 Exportar a PDF"
-2. Descargar reporte ejecutivo
-3. Revisar en "🔍 Depuración" si es necesario
+**Mejoras**:
+- **Rutas absolutas** para mayor robustez
+- **Validación** de tipos de archivo
+- **Límites** de tamaño de archivo
+- **Compresión** automática de datos
 
 ---
 
-## 🔮 Características Futuras
+## 🔒 Seguridad
 
-### Planificadas
-- [ ] Conexión a bases de datos
-- [ ] Análisis de series temporales
-- [ ] Machine Learning automático
-- [ ] Exportación a múltiples formatos
-- [ ] Colaboración en tiempo real
+### 1. **Ejecución de Código**
+
+**Medidas**:
+- **PythonREPL** de LangChain para ejecución segura
+- **Sandboxing** de operaciones críticas
+- **Validación** de código antes de ejecución
+- **Límites** de tiempo de ejecución
+
+### 2. **Manejo de Datos**
+
+**Protecciones**:
+- **Validación** de tipos de archivo
+- **Sanitización** de nombres de archivo
+- **Límites** de tamaño de archivo
+- **Encriptación** de datos sensibles
+
+### 3. **API Keys**
+
+**Seguridad**:
+- **Variables de entorno** para claves API
+- **Validación** de claves antes del uso
+- **Rotación** automática de claves
+- **Logging** de uso de API
+
+---
+
+## 📊 Métricas y Analytics
+
+### 1. **Métricas de Uso**
+
+**Datos Recopilados**:
+- **Número de consultas** por sesión
+- **Tipos de análisis** más populares
+- **Tiempo de respuesta** promedio
+- **Tasa de éxito** de consultas
+
+### 2. **Métricas de Rendimiento**
+
+**Indicadores**:
+- **Tiempo de carga** de la aplicación
+- **Uso de memoria** por operación
+- **Tiempo de generación** de PDFs
+- **Tasa de errores** por funcionalidad
+
+### 3. **Métricas de Calidad**
+
+**Medidas**:
+- **Satisfacción del usuario** con resultados
+- **Calidad de visualizaciones** generadas
+- **Relevancia de insights** extraídos
+- **Accionabilidad de recomendaciones**
+
+---
+
+## 🔮 Roadmap y Futuras Mejoras
+
+### Próximas Características
+
+#### **Análisis Avanzado**
+- [ ] **Machine Learning automático** para detección de patrones
+- [ ] **Análisis de series temporales** con predicciones
+- [ ] **Análisis de sentimientos** en datos textuales
+- [ ] **Detección de anomalías** automática
+
+#### **Integración de Datos**
+- [ ] **Conexión a bases de datos** (PostgreSQL, MySQL)
+- [ ] **APIs externas** para enriquecimiento de datos
+- [ ] **Sincronización en la nube** de archivos
+- [ ] **Colaboración en tiempo real** entre usuarios
+
+#### **Storytelling Avanzado**
+- [ ] **Múltiples formatos** de exportación (PowerPoint, Word)
+- [ ] **Templates personalizables** para reportes
+- [ ] **Análisis comparativo** entre datasets
+- [ ] **Recomendaciones automáticas** de visualizaciones
+
+#### **UI/UX Mejoras**
+- [ ] **Modo oscuro** para la interfaz
+- [ ] **Responsive design** para móviles
+- [ ] **Accesibilidad** mejorada (WCAG 2.1)
+- [ ] **Internacionalización** (múltiples idiomas)
 
 ### En Desarrollo
-- [ ] Optimización de rendimiento
-- [ ] Más tipos de visualizaciones
-- [ ] Integración con APIs externas
+
+#### **Optimización de Rendimiento**
+- [ ] **Caché distribuido** con Redis
+- [ ] **Procesamiento asíncrono** de tareas pesadas
+- [ ] **Compresión inteligente** de datos
+- [ ] **CDN** para assets estáticos
+
+#### **Inteligencia Artificial**
+- [ ] **Fine-tuning** de modelos para casos específicos
+- [ ] **Aprendizaje continuo** basado en feedback
+- [ ] **Personalización** de respuestas por usuario
+- [ ] **Detección de contexto** automática
 
 ---
 
 ## 🤝 Contribución
 
-### Estructura de Desarrollo
-1. **Fork** del repositorio
-2. **Branch** para nueva funcionalidad
-3. **Commit** con mensajes descriptivos
-4. **Pull Request** con documentación
+### Guías de Contribución
 
-### Estándares de Código
-- **Python**: PEP 8
-- **Documentación**: Docstrings en español
-- **Tests**: Para nuevas funcionalidades
-- **Type Hints**: Obligatorios
+#### **Estándares de Código**
+- **Python**: PEP 8, type hints, docstrings en español
+- **JavaScript/HTML**: ESLint, Prettier
+- **CSS**: BEM methodology, variables CSS
+- **Commits**: Conventional Commits
+
+#### **Proceso de Desarrollo**
+1. **Fork** el repositorio
+2. **Crea** una rama para tu feature
+3. **Desarrolla** con tests incluidos
+4. **Documenta** tus cambios
+5. **Abre** un Pull Request
+
+#### **Áreas de Contribución**
+- **Nuevas funcionalidades** de análisis
+- **Mejoras en UI/UX**
+- **Optimización de rendimiento**
+- **Documentación y ejemplos**
+- **Tests y calidad de código**
 
 ---
 
-## 📞 Soporte
+## 📞 Soporte y Contacto
 
-### Recursos
-- **Documentación**: Este archivo
-- **Issues**: GitHub Issues
-- **Discusiones**: GitHub Discussions
+### Canales de Soporte
 
-### Contacto
-- **Desarrollador**: [Tu información]
-- **Email**: [Tu email]
-- **Proyecto**: [URL del repositorio]
+- **Issues de GitHub**: Para reportar bugs y solicitar features
+- **Discussions**: Para preguntas y discusiones generales
+- **Wiki**: Documentación adicional y ejemplos
+
+### Recursos Adicionales
+
+- **Tutoriales**: Guías paso a paso para usuarios
+- **Ejemplos**: Casos de uso reales con datasets
+- **API Reference**: Documentación técnica completa
+- **Changelog**: Historial detallado de cambios
 
 ---
 
 ## 📄 Licencia
 
-[Especificar licencia del proyecto]
+Este proyecto está bajo la **Licencia MIT**. Ver el archivo [LICENSE](LICENSE) para detalles completos.
+
+### Términos de Uso
+
+- **Uso comercial** permitido
+- **Modificación** permitida
+- **Distribución** permitida
+- **Atribución** requerida
 
 ---
 
-*Documentación generada automáticamente - Okuo IA DataLab v1.0.0* 
+*Documentación actualizada el 19 de julio de 2025* 
