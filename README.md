@@ -2,7 +2,7 @@
 
 > **Laboratorio de Análisis Inteligente de Datos** - Una aplicación web que combina IA conversacional con análisis de datos avanzado.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
 [![LangChain](https://img.shields.io/badge/LangChain-0.1+-green.svg)](https://langchain.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
