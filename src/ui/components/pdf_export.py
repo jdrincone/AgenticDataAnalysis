@@ -1,5 +1,5 @@
 """
-PDF Export component for chat conversations.
+PDF Export component for chat conversations with professional storytelling.
 """
 import streamlit as st
 from typing import List, Dict, Any
@@ -17,11 +17,13 @@ import plotly.io as pio
 from src.config.settings import config
 from src.models.data_models import ChatMessage
 from src.core.agents.python_agent import PythonAnalysisAgent
+from src.core.agents.storytelling_agent import StorytellingAgent
 
 class PDFExporter:
-    """Professional PDF exporter for chat conversations."""
+    """Professional PDF exporter with storytelling capabilities."""
     
     def __init__(self):
+        self.storytelling_agent = StorytellingAgent()
         self.colors = {
             'primary': colors.HexColor(config.PRIMARY_COLOR),
             'secondary': colors.HexColor(config.SECONDARY_COLOR),
@@ -249,169 +251,156 @@ class PDFExporter:
     def _save_plotly_figure(self, fig, filename: str) -> str:
         """Save plotly figure as temporary image file."""
         try:
-            # Create temp directory in project using config paths
-            temp_dir = config.BASE_DIR / "temp_pdf_images"
-            temp_dir.mkdir(parents=True, exist_ok=True)
+            # Create temporary file
+            temp_dir = Path(tempfile.gettempdir())
+            img_filename = f"pdf_viz_{filename.replace('.pickle', '.png')}"
+            img_path = temp_dir / img_filename
             
-            import uuid
-            unique_id = str(uuid.uuid4())
-            temp_path = temp_dir / f"plotly_{unique_id}.png"
+            # Save figure as PNG
+            fig.write_image(str(img_path), width=800, height=600, scale=2)
             
-            # Save as PNG with high quality
-            fig.write_image(str(temp_path), format='png', width=800, height=600, scale=2)
-            
-            # Verify the file was created
-            if not temp_path.exists():
-                raise FileNotFoundError(f"Failed to create image file: {temp_path}")
-            
-            return str(temp_path)
+            return str(img_path)
         except Exception as e:
-            st.error(f"Error saving plotly figure: {str(e)}")
-            print(f"Debug - Current working directory: {os.getcwd()}")
-            print(f"Debug - Temp directory path: {config.BASE_DIR / 'temp_pdf_images'}")
-            print(f"Debug - Temp directory exists: {(config.BASE_DIR / 'temp_pdf_images').exists()}")
-            print(f"Debug - Config BASE_DIR: {config.BASE_DIR}")
-            print(f"Debug - Config BASE_DIR exists: {config.BASE_DIR.exists()}")
+            print(f"Error saving figure {filename}: {str(e)}")
             return None
     
     def _add_intermediate_outputs(self, story: List, agent: PythonAnalysisAgent):
         """Add intermediate outputs section."""
-        intermediate_outputs = agent.get_intermediate_outputs()
-        
-        if intermediate_outputs:
-            story.append(Paragraph("🔍 <b>Proceso de Análisis</b>", self.styles['CustomSubheader']))
+        if hasattr(agent, 'intermediate_outputs') and agent.intermediate_outputs:
+            story.append(Paragraph("📝 <b>Salidas Intermedias</b>", self.styles['CustomSubheader']))
             story.append(Spacer(1, 15))
             
-            for i, output in enumerate(intermediate_outputs):
-                story.append(Paragraph(f"<b>Paso {i+1}:</b>", self.styles['Normal']))
-                
-                if 'thought' in output:
-                    story.append(Paragraph(f"<b>Razonamiento:</b> {output['thought']}", self.styles['Normal']))
-                
-                if 'code' in output:
-                    story.append(Paragraph("<b>Código:</b>", self.styles['Normal']))
-                    story.append(Paragraph(output['code'], self.styles['CodeBlock']))
-                
-                if 'output' in output:
-                    story.append(Paragraph(f"<b>Salida:</b> {output['output']}", self.styles['Normal']))
-                
+            for i, output in enumerate(agent.intermediate_outputs, 1):
+                story.append(Paragraph(f"<b>Paso {i}:</b>", self.styles['Normal']))
+                story.append(Paragraph(output, self.styles['CodeBlock']))
                 story.append(Spacer(1, 10))
     
     def export_chat_to_pdf(self, chat_history: List[ChatMessage], analysis_results: List, filename: str = None) -> str:
-        """Export chat conversation to PDF."""
+        """
+        Export chat conversation to PDF using professional storytelling.
+        """
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"chat_export_{timestamp}.pdf"
+            filename = f"okuo_analysis_report_{timestamp}.pdf"
         
-        # Initialize temp files list
-        self.temp_files = []
-        
+        # Use the storytelling agent to generate professional PDF
         try:
-            # Create PDF document
-            doc = SimpleDocTemplate(
-                filename,
-                pagesize=A4,
-                rightMargin=72,
-                leftMargin=72,
-                topMargin=72,
-                bottomMargin=72
+            pdf_path = self.storytelling_agent.generate_storytelling_pdf(
+                chat_history=chat_history,
+                analysis_results=analysis_results,
+                filename=filename
             )
             
-            story = []
+            st.success(f"✅ Reporte profesional generado exitosamente: {filename}")
+            return pdf_path
             
-            # Add header
-            self._create_header(story)
-            
-            # Add executive summary with chat history and analysis results
-            self._add_executive_summary(story, chat_history, analysis_results)
-            
-            # Build PDF
-            doc.build(story)
-        
         except Exception as e:
-            print(f"Error during PDF generation: {e}")
-            raise e
-        finally:
-            # Clean up temp files after PDF is built
-            for temp_file in self.temp_files:
-                try:
-                    if os.path.exists(temp_file):
-                        os.remove(temp_file)
-                except Exception as e:
-                    print(f"Warning: Could not remove temp file {temp_file}: {e}")
+            st.error(f"❌ Error generando reporte profesional: {str(e)}")
             
-            # Clean up temp directory
-            temp_dir = config.BASE_DIR / "temp_pdf_images"
-            if temp_dir.exists():
-                try:
-                    import shutil
-                    shutil.rmtree(temp_dir)
-                except Exception as e:
-                    print(f"Warning: Could not remove temp directory {temp_dir}: {e}")
+            # Fallback to simple PDF if storytelling fails
+            st.warning("🔄 Generando reporte simple como respaldo...")
+            return self._generate_simple_pdf(chat_history, analysis_results, filename)
+    
+    def _generate_simple_pdf(self, chat_history: List[ChatMessage], analysis_results: List, filename: str) -> str:
+        """Generate simple PDF as fallback."""
+        # Create temporary file
+        temp_dir = Path(tempfile.gettempdir())
+        pdf_path = temp_dir / filename
         
-        return filename
+        # Create PDF document
+        doc = SimpleDocTemplate(str(pdf_path), pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        story = []
+        
+        # Add header
+        self._create_header(story)
+        
+        # Add executive summary
+        self._add_executive_summary(story, chat_history, analysis_results)
+        
+        # Build PDF
+        doc.build(story)
+        
+        return str(pdf_path)
+
 
 def render_pdf_export_button():
-    """Render PDF export button in the UI."""
-    st.subheader("📄 Exportar Conversación")
+    """Render PDF export button with storytelling option."""
+    # Check if this component has already been rendered to prevent duplication
+    if 'pdf_export_rendered' in st.session_state:
+        return
     
-    col1, col2 = st.columns([1, 2])
+    # Mark as rendered
+    st.session_state.pdf_export_rendered = True
     
-    with col1:
-        if st.button("📊 Exportar a PDF", type="primary", use_container_width=True):
-            try:
-                # Get chat history and analysis results from session state
-                if 'app_state' not in st.session_state:
-                    st.error("No hay historial de conversación para exportar")
-                    return
-                
-                app_state = st.session_state.app_state
-                chat_history = app_state.chat_history
-                analysis_results = app_state.analysis_results
-                
-                if not chat_history:
-                    st.error("No hay historial de conversación para exportar")
-                    return
-                
-                # Create exporter
-                exporter = PDFExporter()
-                
-                # Generate filename
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"Okuo_DataLab_Resumen_Ejecutivo_{timestamp}.pdf"
-                
-                # Export to PDF with chat history and analysis results
-                pdf_path = exporter.export_chat_to_pdf(chat_history, analysis_results, filename)
-                
-                # Read the PDF file
-                with open(pdf_path, "rb") as pdf_file:
-                    pdf_bytes = pdf_file.read()
-                
-                # Create download button
-                st.download_button(
-                    label="⬇️ Descargar PDF",
-                    data=pdf_bytes,
-                    file_name=filename,
-                    mime="application/pdf",
-                    use_container_width=True
-                )
-                
-                st.success(f"✅ Reporte PDF generado exitosamente: {filename}")
-                
-                # Clean up temporary file
-                if os.path.exists(pdf_path):
-                    os.remove(pdf_path)
-                    
-            except Exception as e:
-                st.error(f"❌ Error al generar PDF: {str(e)}")
-                print(f"Debug - PDF generation error: {e}")
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.info("""
-        **📋 Información del Reporte Ejecutivo:**
-        - Preguntas principales y respuestas clave
-        - Visualizaciones explicativas
-        - Insights y conclusiones importantes
-        - Formato profesional para presentación
-        - Resumen gerencial conciso
-        """) 
+        st.markdown("### 📄 Exportar Reporte")
+        
+        # Get chat history and analysis results from session state
+        if 'app_state' not in st.session_state:
+            st.info("💡 Inicia una conversación para generar un reporte")
+            return
+        
+        app_state = st.session_state.app_state
+        chat_history = app_state.chat_history
+        analysis_results = app_state.analysis_results
+        
+        if not chat_history:
+            st.info("💡 Inicia una conversación para generar un reporte")
+            return
+        
+        # Export button with fixed unique key
+        if st.button("🚀 Generar Reporte Profesional", type="primary", use_container_width=True, key="pdf_export_button_unique"):
+            with st.spinner("🔄 Generando reporte profesional con storytelling..."):
+                try:
+                    exporter = PDFExporter()
+                    pdf_path = exporter.export_chat_to_pdf(chat_history, analysis_results)
+                    
+                    if pdf_path and os.path.exists(pdf_path):
+                        # Read PDF file
+                        with open(pdf_path, "rb") as pdf_file:
+                            pdf_bytes = pdf_file.read()
+                        
+                        # Create download button
+                        download_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"okuo_storytelling_report_{download_timestamp}.pdf"
+                        
+                        st.download_button(
+                            label="📥 Descargar Reporte Profesional",
+                            data=pdf_bytes,
+                            file_name=filename,
+                            mime="application/pdf",
+                            use_container_width=True,
+                            key="pdf_download_button_unique"
+                        )
+                        
+                        st.success("✅ Reporte generado exitosamente con storytelling profesional")
+                        
+                        # Cleanup
+                        try:
+                            os.remove(pdf_path)
+                        except:
+                            pass
+                    else:
+                        st.error("❌ No se pudo generar el reporte")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error generando reporte: {str(e)}")
+                    st.exception(e)
+        
+        st.markdown("""
+        <div style="background-color: #f0f8ff; padding: 15px; border-radius: 10px; border-left: 4px solid #1C8074;">
+        <h4 style="color: #1C8074; margin: 0 0 10px 0;">🎯 Reporte Profesional con Storytelling</h4>
+        <p style="margin: 0; color: #666;">
+        Este reporte incluye:
+        • 📊 Resumen ejecutivo con insights clave<br>
+        • 💬 Análisis profundo de la conversación<br>
+        • 📈 Visualizaciones y gráficos relevantes<br>
+        • 🎯 Recomendaciones estratégicas<br>
+        • 🔧 Detalles técnicos del análisis
+        </p>
+        </div>
+        """, unsafe_allow_html=True) 

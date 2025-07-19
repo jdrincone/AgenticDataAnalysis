@@ -44,6 +44,7 @@ class AppConfig:
     # UI Configuration
     PRIMARY_COLOR: str = "#1C8074"
     SECONDARY_COLOR: str = "#1A494C"
+    ACCENT_COLOR: str = "#94AF92"
     SUCCESS_COLOR: str = "#1C8074"
     ERROR_COLOR: str = "#D32F2F"
     

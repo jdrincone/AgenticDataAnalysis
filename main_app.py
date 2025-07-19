@@ -16,6 +16,7 @@ from src.models.data_models import InputData, DatasetInfo, AppState, ChatMessage
 from src.ui.components.header import render_header
 from src.ui.components.file_upload import render_file_upload, render_file_selector
 from src.ui.components.chat_interface import render_chat_interface, render_debug_section
+from src.ui.components.pdf_export import render_pdf_export_button
 
 def load_css():
     """Load custom CSS styles."""
@@ -35,6 +36,10 @@ def initialize_session_state():
     # Load data dictionary into app state if not already loaded
     if not st.session_state.app_state.data_dictionary:
         st.session_state.app_state.data_dictionary = file_manager.load_data_dictionary()
+    
+    # Clear PDF export rendered flag to allow re-rendering
+    if 'pdf_export_rendered' in st.session_state:
+        del st.session_state.pdf_export_rendered
 
 def handle_chat_submit(user_query: str):
     """Handle chat submission using AppState."""
@@ -211,6 +216,9 @@ def render_chat_tab():
         on_submit=handle_chat_submit,
         selected_files=app_state.selected_files
     )
+    
+    # Add PDF export button
+    render_pdf_export_button()
 
 def render_debug_tab():
     """Render the debug tab using AppState."""
