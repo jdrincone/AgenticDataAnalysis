@@ -1,4 +1,4 @@
-# 🤖 Okuo IA DataLab
+# Okuo IA DataLab
 
 > **Laboratorio de Análisis Inteligente de Datos** - Una aplicación web que combina IA conversacional con análisis de datos avanzado y storytelling ejecutivo.
 
@@ -13,7 +13,7 @@ Okuo IA DataLab es una aplicación web inteligente que permite a usuarios no té
 
 ### ✨ Características Principales
 
-- 🤖 **IA Conversacional**: Análisis de datos mediante lenguaje natural
+- **IA Conversacional**: Análisis de datos mediante lenguaje natural
 - 📊 **Visualizaciones Automáticas**: Gráficos interactivos con Plotly
 - 📁 **Gestión Inteligente de Datos**: Carga y organización de archivos CSV
 - 📄 **Reportes Ejecutivos Profesionales**: Exportación automática a PDF con storytelling

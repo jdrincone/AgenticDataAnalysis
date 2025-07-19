@@ -343,7 +343,10 @@ class StorytellingAgent:
         current_answer = None
         current_visualizations = []
         
-        for i, msg in enumerate(chat_history):
+        # Create a mapping of assistant messages to analysis results
+        assistant_count = 0
+        
+        for msg in chat_history:
             if msg.role == "user":
                 # Save previous turn if exists
                 if current_question and current_answer:
@@ -360,11 +363,18 @@ class StorytellingAgent:
                 
             elif msg.role == "assistant":
                 current_answer = msg.content
-                # Get visualizations for this turn
-                if i < len(analysis_results):
-                    result = analysis_results[i]
-                    if hasattr(result, 'output_image_paths'):
+                # Get visualizations for this turn using assistant count
+                if assistant_count < len(analysis_results):
+                    result = analysis_results[assistant_count]
+                    if hasattr(result, 'output_image_paths') and result.output_image_paths:
                         current_visualizations = result.output_image_paths
+                        print(f"Found {len(result.output_image_paths)} visualizations for assistant message {assistant_count}")
+                    else:
+                        print(f"No visualizations found for assistant message {assistant_count}")
+                else:
+                    print(f"No analysis result found for assistant message {assistant_count}")
+                
+                assistant_count += 1
         
         # Add last turn
         if current_question and current_answer:
@@ -373,6 +383,10 @@ class StorytellingAgent:
                 'answer': current_answer,
                 'visualizations': current_visualizations
             })
+        
+        print(f"Total turns created: {len(turns)}")
+        for i, turn in enumerate(turns):
+            print(f"Turn {i}: {len(turn['visualizations'])} visualizations")
         
         return turns
     
@@ -641,12 +655,18 @@ class StorytellingAgent:
         story.append(Paragraph("📈 <b>Visualizaciones y Gráficos</b>", self.styles['SectionTitle']))
         story.append(Spacer(1, 20))
         
+        total_visualizations = 0
+        successful_visualizations = 0
+        
         for i, insight in enumerate(insights, 1):
             if insight.visualizations:
                 story.append(Paragraph(f"<b>Visualizaciones para Consulta {i}:</b>", self.styles['SubsectionTitle']))
+                print(f"Processing {len(insight.visualizations)} visualizations for insight {i}")
                 
                 for viz_path in insight.visualizations:
+                    total_visualizations += 1
                     try:
+                        print(f"Processing visualization: {viz_path}")
                         # Load and save plotly figure
                         img_path = self._process_visualization(viz_path)
                         if img_path:
@@ -655,10 +675,20 @@ class StorytellingAgent:
                             story.append(Spacer(1, 10))
                             story.append(img)
                             story.append(Spacer(1, 10))
+                            successful_visualizations += 1
+                            print(f"Successfully added visualization: {viz_path}")
+                        else:
+                            print(f"Failed to process visualization: {viz_path}")
                     except Exception as e:
+                        print(f"Error processing visualization {viz_path}: {str(e)}")
                         st.error(f"Error processing visualization {viz_path}: {str(e)}")
                 
                 story.append(Spacer(1, 15))
+        
+        print(f"Visualization summary: {successful_visualizations}/{total_visualizations} successful")
+        
+        if total_visualizations == 0:
+            story.append(Paragraph("No se encontraron visualizaciones para incluir en este reporte.", self.styles['CustomBodyText']))
     
     def _add_recommendations_section(self, story: List, insights: List[ConversationInsight]):
         """Add recommendations section."""
@@ -736,19 +766,29 @@ class StorytellingAgent:
         """Process visualization and return image path."""
         try:
             figure_path = config.PLOTLY_FIGURES_DIR / viz_path
+            print(f"Looking for figure at: {figure_path}")
             
             if figure_path.exists():
+                print(f"Figure file found: {figure_path}")
                 with open(figure_path, "rb") as f:
                     fig = pickle.load(f)
+                
+                print(f"Figure loaded successfully, type: {type(fig)}")
                 
                 # Save as temporary image
                 temp_img_path = self._save_plotly_figure(fig, viz_path)
                 if temp_img_path:
                     self.temp_files.append(temp_img_path)
+                    print(f"Temporary image saved: {temp_img_path}")
                     return temp_img_path
+                else:
+                    print(f"Failed to save temporary image for {viz_path}")
+            else:
+                print(f"Figure file not found: {figure_path}")
             
             return None
         except Exception as e:
+            print(f"Error processing visualization {viz_path}: {str(e)}")
             st.error(f"Error processing visualization {viz_path}: {str(e)}")
             return None
     

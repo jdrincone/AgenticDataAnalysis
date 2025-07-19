@@ -9,7 +9,7 @@ def render_header():
     st.markdown(f"""
         <div style='display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 2rem;'>
             <h1 style='font-size: 3rem; font-weight: 800; color: {config.PRIMARY_COLOR}; margin-bottom: 0.2em;'>
-                🤖 {config.APP_NAME}
+                {config.APP_NAME}
             </h1>
             <p style='font-size: 1.3rem; color: {config.SECONDARY_COLOR}; margin-top: 0;'>
                 {config.APP_DESCRIPTION}

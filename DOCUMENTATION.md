@@ -6,7 +6,7 @@
 
 ### 🚀 Características Principales
 
-- **🤖 Análisis Inteligente**: IA conversacional que entiende consultas en lenguaje natural
+- **Análisis Inteligente**: IA conversacional que entiende consultas en lenguaje natural
 - **📊 Visualizaciones Automáticas**: Generación automática de gráficos con Plotly
 - **📁 Gestión de Datos**: Carga y gestión de archivos CSV
 - **📄 Exportación PDF Profesional**: Generación de reportes ejecutivos con storytelling

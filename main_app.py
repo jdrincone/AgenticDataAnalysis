@@ -259,7 +259,7 @@ def main():
     # Page configuration
     st.set_page_config(
         page_title=config.APP_NAME,
-        page_icon="🤖",
+        page_icon="",
         layout="wide",
         initial_sidebar_state="expanded"
     )

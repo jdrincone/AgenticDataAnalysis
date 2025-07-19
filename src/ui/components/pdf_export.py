@@ -118,7 +118,7 @@ class PDFExporter:
     def _create_header(self, story: List, title: str = "Okuo IA DataLab"):
         """Create the PDF header."""
         # Logo/Title
-        story.append(Paragraph(f"🤖 {title}", self.styles['CustomHeader']))
+        story.append(Paragraph(f"{title}", self.styles['CustomHeader']))
         story.append(Spacer(1, 20))
         
         # Subtitle
