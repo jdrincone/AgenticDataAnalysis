@@ -69,9 +69,11 @@ def handle_chat_submit(user_query: str):
         input_data_list = app_state.get_input_data_list(file_manager.uploads_dir)
         print(f"Input data list prepared: {len(input_data_list)} items")
         
-        # Process query
+        # Process query with chat history
         print("Calling agent.process_query...")
-        result = st.session_state.agent.process_query(user_query, input_data_list)
+        chat_history = app_state.chat_history
+        print(f"Chat interface - History length: {len(chat_history)}")
+        result = st.session_state.agent.process_query(user_query, input_data_list, chat_history)
         print(f"Agent returned result: {result}")
         
         # Add assistant response to chat history

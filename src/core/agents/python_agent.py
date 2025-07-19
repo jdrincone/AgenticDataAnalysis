@@ -36,7 +36,7 @@ class PythonAnalysisAgent:
         self.output_image_paths: Dict[int, List[str]] = {}
         self.analysis_results: List[AnalysisResult] = []
     
-    def process_query(self, user_query: str, input_data: List[InputData]) -> Dict[str, Any]:
+    def process_query(self, user_query: str, input_data: List[InputData], chat_history: List[ChatMessage] = None) -> Dict[str, Any]:
         """Process a user query and return analysis results."""
         try:
             print(f"Processing query: {user_query}")
@@ -46,6 +46,15 @@ class PythonAnalysisAgent:
             context = self._prepare_context(input_data)
             print(f"Context prepared, length: {len(context)}")
             
+            # Prepare chat history context
+            chat_history_context = ""
+            if chat_history and len(chat_history) > 0:
+                chat_history_context = "\n\n**Historial de la conversación anterior:**\n"
+                for i, message in enumerate(chat_history[-10:]):  # Last 10 messages
+                    role = "Usuario" if message.role == "user" else "Asistente"
+                    chat_history_context += f"{role}: {message.content}\n"
+                print(f"Chat history context added: {len(chat_history)} messages")
+            
             # Create the full prompt
             full_prompt = f"""
 {self.main_prompt}
@@ -53,13 +62,16 @@ class PythonAnalysisAgent:
 Contexto de los datos:
 {context}
 
-Consulta del usuario: {user_query}
+{chat_history_context}
+
+Consulta actual del usuario: {user_query}
 
 **INSTRUCCIONES IMPORTANTES:**
 - Si el usuario pide crear gráficas, visualizaciones, análisis estadísticos o cualquier procesamiento de datos, DEBES incluir código Python en tu respuesta.
 - El código debe estar en bloques markdown con ```python al inicio y ``` al final.
 - Para gráficas, usa plotly y almacena las figuras en la lista `plotly_figures`.
 - Para análisis estadísticos, usa print() para mostrar los resultados.
+- **IMPORTANTE**: Usa el historial de la conversación para mantener contexto y recordar preguntas anteriores.
 
 Por favor, analiza los datos y responde a la consulta del usuario. Si necesitas ejecutar código Python, inclúyelo en tu respuesta.
 """
