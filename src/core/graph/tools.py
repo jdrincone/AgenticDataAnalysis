@@ -1,21 +1,31 @@
-from langchain_core.tools import tool
-from langchain_experimental.utilities import PythonREPL
-
-from langchain_core.messages import AIMessage
-from typing import Annotated, Tuple
-from langgraph.prebuilt import InjectedState
-import sys
-from io import StringIO
+"""
+Python analysis tools for data processing and visualization.
+"""
+import logging
 import os
+import pickle
+import sys
+import uuid
+from io import StringIO
+from typing import Annotated, Tuple
+
+import pandas as pd
 import plotly
+import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
-import plotly.express as px
-import pandas as pd
 import sklearn
-import pickle
-import uuid
+from langchain_core.messages import AIMessage
+from langchain_core.tools import tool
+from langchain_experimental.utilities import PythonREPL
+from langgraph.prebuilt import InjectedState
+
 from src.config.settings import config
+
+from src.config.logging_config import get_logger
+
+# Configure logging
+logger = get_logger(__name__)
 
 # Initialize PythonREPL with persistent variables
 repl = PythonREPL()
@@ -200,24 +210,24 @@ pc.DEFAULT_PLOTLY_COLORS = corporate_colors
                     
                     # Handle plotly figures if they exist in the REPL
                     if 'plotly_figures' in repl_vars and repl_vars['plotly_figures']:
-                        print(f"Found {len(repl_vars['plotly_figures'])} plotly figures to save")
+                        logger.info(f"Found {len(repl_vars['plotly_figures'])} plotly figures to save")
                         # Save plotly figures
                         for figure in repl_vars['plotly_figures']:
                             pickle_filename = os.path.join(config.PLOTLY_FIGURES_DIR, f"{uuid.uuid4()}.pickle")
                             with open(pickle_filename, 'wb') as f:
                                 pickle.dump(figure, f)
-                            print(f"Saved figure to {pickle_filename}")
+                            logger.debug(f"Saved figure to {pickle_filename}")
                         
                         # Check for new image files
                         new_image_files = set(os.listdir(config.PLOTLY_FIGURES_DIR)) - current_image_files
                         self.latest_images.extend(list(new_image_files))
-                        print(f"New images detected: {list(new_image_files)}")
+                        logger.info(f"New images detected: {list(new_image_files)}")
                         
                         # Reset plotly_figures
                         if 'plotly_figures' in self.persistent_vars:
                             self.persistent_vars["plotly_figures"] = []
                     else:
-                        print("No plotly_figures found in REPL")
+                        logger.debug("No plotly_figures found in REPL")
                 
                 except Exception as e:
                     results.append(f"Error en bloque {i+1}: {str(e)}")

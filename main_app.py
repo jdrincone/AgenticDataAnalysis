@@ -43,18 +43,21 @@ def initialize_session_state():
 
 def handle_chat_submit(user_query: str):
     """Handle chat submission using AppState."""
-    print(f"handle_chat_submit called with: {user_query}")
+    from src.config.logging_config import get_logger
+    logger = get_logger(__name__)
+    
+    logger.info(f"handle_chat_submit called with: {user_query}")
     
     if not user_query.strip():
-        print("Empty query, returning")
+        logger.info("Empty query, returning")
         return
     
     try:
         app_state = st.session_state.app_state
-        print(f"App state initialized, selected files: {len(app_state.selected_files)}")
+        logger.info(f"App state initialized, selected files: {len(app_state.selected_files)}")
         
         if not app_state.has_selected_files():
-            print("No files selected")
+            logger.warning("No files selected")
             st.error("No hay archivos seleccionados para analizar.")
             return
         
@@ -63,28 +66,28 @@ def handle_chat_submit(user_query: str):
             role="user",
             content=user_query
         ))
-        print("User message added to chat history")
+        logger.info("User message added to chat history")
         
         # Prepare input data using AppState
         input_data_list = app_state.get_input_data_list(file_manager.uploads_dir)
-        print(f"Input data list prepared: {len(input_data_list)} items")
+        logger.info(f"Input data list prepared: {len(input_data_list)} items")
         
         # Process query with chat history
-        print("Calling agent.process_query...")
+        logger.info("Calling agent.process_query...")
         chat_history = app_state.chat_history
-        print(f"Chat interface - History length: {len(chat_history)}")
+        logger.info(f"Chat interface - History length: {len(chat_history)}")
         result = st.session_state.agent.process_query(user_query, input_data_list, chat_history)
-        print(f"Agent returned result: {result}")
+        logger.debug(f"Agent returned result: {result}")
         
         # Add assistant response to chat history
         assistant_response = result.get('response', 'No se pudo procesar la consulta.')
-        print(f"Adding assistant response to chat history: {len(assistant_response)} characters")
+        logger.info(f"Adding assistant response to chat history: {len(assistant_response)} characters")
         
         app_state.add_chat_message(ChatMessage(
             role="assistant",
             content=assistant_response
         ))
-        print(f"Chat history after adding assistant message: {len(app_state.chat_history)} messages")
+        logger.info(f"Chat history after adding assistant message: {len(app_state.chat_history)} messages")
         
         # Add analysis result
         analysis_result = AnalysisResult(

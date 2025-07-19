@@ -93,6 +93,5 @@ uploads/
 assets/uploads/
 
 # Plotly figures cache
-images/plotly_figures/
 assets/images/plotly_figures/
 

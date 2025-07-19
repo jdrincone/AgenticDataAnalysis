@@ -1,6 +1,8 @@
 """
 Python analysis agent for data processing and visualization.
 """
+import logging
+import re
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import pickle
@@ -11,6 +13,11 @@ from src.config.settings import config
 from src.models.data_models import InputData, AnalysisResult, ChatMessage
 from src.core.graph.tools import PythonAnalysisTool
 from src.utils.file_utils import file_manager
+
+from src.config.logging_config import get_logger
+
+# Configure logging
+logger = get_logger(__name__)
 
 class PythonAnalysisAgent:
     """Main agent for Python-based data analysis."""
@@ -39,21 +46,21 @@ class PythonAnalysisAgent:
     def process_query(self, user_query: str, input_data: List[InputData], chat_history: List[ChatMessage] = None) -> Dict[str, Any]:
         """Process a user query and return analysis results."""
         try:
-            print(f"Processing query: {user_query}")
-            print(f"Input data: {len(input_data)} datasets")
+            logger.info(f"Processing query: {user_query}")
+            logger.info(f"Input data: {len(input_data)} datasets")
             
             # Prepare the prompt with context
             context = self._prepare_context(input_data)
-            print(f"Context prepared, length: {len(context)}")
+            logger.info(f"Context prepared, length: {len(context)}")
             
             # Prepare chat history context
             chat_history_context = ""
             if chat_history and len(chat_history) > 0:
                 chat_history_context = "\n\n**Historial de la conversación anterior:**\n"
-                for i, message in enumerate(chat_history[-10:]):  # Last 10 messages
+                for message in chat_history[-10:]:  # Last 10 messages
                     role = "Usuario" if message.role == "user" else "Asistente"
                     chat_history_context += f"{role}: {message.content}\n"
-                print(f"Chat history context added: {len(chat_history)} messages")
+                logger.info(f"Chat history context added: {len(chat_history)} messages")
             
             # Create the full prompt
             full_prompt = f"""
@@ -75,30 +82,34 @@ Consulta actual del usuario: {user_query}
 
 Por favor, analiza los datos y responde a la consulta del usuario. Si necesitas ejecutar código Python, inclúyelo en tu respuesta.
 """
-            print("Sending request to LLM...")
+            logger.info("Sending request to LLM...")
             
             # Get response from LLM
             response = self.llm.invoke(full_prompt)
-            print(f"LLM response received: {len(response.content)} characters")
+            logger.info(f"LLM response received: {len(response.content)} characters")
             
             # Check if response contains code that needs to be executed
             if "```python" in response.content:
-                print("Python code detected, executing...")
+                logger.info("Python code detected, executing...")
                 # Extract and execute Python code
                 code_result = self.python_tool.run(response.content, input_data)
-                print(f"Code execution result: {len(code_result)} characters")
+                logger.info(f"Code execution result: {len(code_result)} characters")
                 
                 # Get updated response with execution results (without showing code to user)
                 # Remove code blocks from response for user display
-                import re
                 clean_response = re.sub(r'```python.*?```', '', response.content, flags=re.DOTALL).strip()
                 final_response = f"{clean_response}\n\n**Resultado de la ejecución:**\n{code_result}"
             else:
-                print("No Python code detected")
+                logger.info("No Python code detected")
                 # Check if user is asking for visualizations or analysis
-                visualization_keywords = ['gráfica', 'grafica', 'gráfico', 'grafico', 'histograma', 'dispersión', 'dispersion', 'correlación', 'correlacion', 'análisis', 'analisis', 'estadística', 'estadistica', 'distribución', 'distribucion']
+                visualization_keywords = [
+                    'gráfica', 'grafica', 'gráfico', 'grafico', 'histograma', 
+                    'dispersión', 'dispersion', 'correlación', 'correlacion', 
+                    'análisis', 'analisis', 'estadística', 'estadistica', 
+                    'distribución', 'distribucion'
+                ]
                 if any(keyword in user_query.lower() for keyword in visualization_keywords):
-                    print("Visualization requested but no code generated, prompting for code...")
+                    logger.info("Visualization requested but no code generated, prompting for code...")
                     # Ask the LLM to generate code for visualization
                     code_prompt = f"""
 El usuario pidió: "{user_query}"
@@ -110,7 +121,7 @@ Necesitas generar código Python para crear la visualización solicitada. Respon
 """
                     code_response = self.llm.invoke(code_prompt)
                     if "```python" in code_response.content:
-                        print("Generated code for visualization, executing...")
+                        logger.info("Generated code for visualization, executing...")
                         code_result = self.python_tool.run(code_response.content, input_data)
                         final_response = f"{response.content}\n\n**Resultado de la ejecución:**\n{code_result}"
                     else:
@@ -120,8 +131,8 @@ Necesitas generar código Python para crear la visualización solicitada. Respon
             
             # Track any new images created
             new_images = self.python_tool.get_latest_images()
-            print(f"New images created: {len(new_images)}")
-            print(f"Image paths: {new_images}")
+            logger.info(f"New images created: {len(new_images)}")
+            logger.debug(f"Image paths: {new_images}")
             
             result = {
                 'response': final_response,
@@ -129,13 +140,12 @@ Necesitas generar código Python para crear la visualización solicitada. Respon
                 'output_image_paths': new_images
             }
             
-            print("Query processing completed successfully")
+            logger.info("Query processing completed successfully")
             return result
             
         except Exception as e:
-            print(f"Error in process_query: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"Error in process_query: {str(e)}")
+            logger.exception("Full traceback:")
             return {
                 'response': f"Error procesando la consulta: {str(e)}",
                 'code': None,
@@ -192,5 +202,5 @@ Error al cargar: {str(e)}
             with open(figure_path, "rb") as f:
                 return pickle.load(f)
         except Exception as e:
-            print(f"Error loading plotly figure {image_path}: {e}")
+            logger.error(f"Error loading plotly figure {image_path}: {e}")
             return None 
