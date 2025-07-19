@@ -51,11 +51,11 @@ def complete_python_task(
     
     # Load input datasets if not already loaded
     for input_dataset in graph_state.get("input_data", []):
-        if input_dataset.variable_name not in current_variables:
+        if input_dataset.name not in current_variables:
             try:
-                current_variables[input_dataset.variable_name] = pd.read_csv(input_dataset.data_path)
+                current_variables[input_dataset.name] = input_dataset.data
             except Exception as e:
-                return f"Error loading dataset {input_dataset.variable_name}: {str(e)}", {
+                return f"Error loading dataset {input_dataset.name}: {str(e)}", {
                     "intermediate_outputs": [{"thought": thought, "code": python_code, "output": f"Error loading dataset: {str(e)}"}]
                 }
     
@@ -144,15 +144,16 @@ class PythonAnalysisTool:
             current_variables = {}
             for data in input_data:
                 try:
-                    current_variables[data.variable_name] = pd.read_csv(data.data_path)
+                    # Use the DataFrame directly from InputData
+                    current_variables[data.name] = data.data
                 except Exception as e:
-                    return f"Error cargando dataset {data.variable_name}: {str(e)}"
+                    return f"Error cargando dataset {data.name}: {str(e)}"
             
             # Track current images
             current_image_files = set(os.listdir(config.PLOTLY_FIGURES_DIR))
             
             # Initialize REPL with necessary variables
-            init_code = f"""
+            init_code = """
 import pandas as pd
 import plotly
 import plotly.graph_objects as go
@@ -163,9 +164,6 @@ import pickle
 import uuid
 import os
 
-# Load datasets
-{chr(10).join([f'{var_name} = pd.read_csv("{data.data_path}")' for var_name, data in zip(current_variables.keys(), input_data)])}
-
 # Initialize plotly_figures list
 plotly_figures = []
 
@@ -173,7 +171,7 @@ plotly_figures = []
 pio.templates.default = "plotly_white"
 
 # Define corporate color palette from config
-corporate_colors = {config.CORPORATE_COLORS}
+corporate_colors = """ + str(config.CORPORATE_COLORS) + """
 
 # Set default color sequence for plotly
 import plotly.colors as pc
@@ -182,6 +180,10 @@ pc.DEFAULT_PLOTLY_COLORS = corporate_colors
             
             # Execute initialization code
             self.repl.run(init_code)
+            
+            # Add datasets to REPL namespace
+            for name, df in current_variables.items():
+                self.repl.locals[name] = df
             
             # Execute each code block
             results = []

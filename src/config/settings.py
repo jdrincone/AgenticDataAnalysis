@@ -81,3 +81,12 @@ class AppConfig:
 
 # Global configuration instance
 config = AppConfig() 
+
+# Database Configuration
+DB_CONFIG = {
+    "dbname": "n8n",
+    "user": "postgres", 
+    "password": "EVokuo2023",
+    "host": "okuo-analytics.csebc3207oko.us-east-1.rds.amazonaws.com",
+    "port": 5432
+} 

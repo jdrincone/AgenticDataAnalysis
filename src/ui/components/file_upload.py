@@ -49,7 +49,7 @@ def render_file_selector() -> Optional[List[str]]:
     selected_files = st.multiselect(
         "Selecciona los archivos a analizar",
         available_files,
-        key="selected_files",
+        key="file_selector_multiselect",
         help="Elige los archivos que quieres incluir en el análisis"
     )
     

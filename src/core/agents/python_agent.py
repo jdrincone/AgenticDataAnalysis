@@ -36,15 +36,115 @@ class PythonAnalysisAgent:
         self.output_image_paths: Dict[int, List[str]] = {}
         self.analysis_results: List[AnalysisResult] = []
     
-    def process_query(self, user_query: str, input_data: List[InputData]) -> Dict[str, Any]:
+    def process_query(self, user_query: str, input_data: List[InputData], chat_history: List[ChatMessage] = None) -> Dict[str, Any]:
         """Process a user query and return analysis results."""
         try:
             print(f"Processing query: {user_query}")
             print(f"Input data: {len(input_data)} datasets")
             
+            # Check if query mentions database
+            database_keywords = ['base de datos', 'database', 'sql', 'tabla', 'table', 'postgresql', 'postgres']
+            has_database_keywords = any(keyword in user_query.lower() for keyword in database_keywords)
+            
+            # Check if a table is selected in session state
+            selected_table = None
+            try:
+                from src.ui.components.table_selector import get_selected_table
+                selected_table = get_selected_table()
+            except:
+                pass
+            
+            # Decision logic: prioritize database if table is selected, otherwise use file data
+            use_database = selected_table is not None or has_database_keywords
+            use_files = len(input_data) > 0 and not use_database
+            
+            # If both files and table are selected, prioritize based on user intent
+            if len(input_data) > 0 and selected_table is not None:
+                if has_database_keywords:
+                    use_database = True
+                    use_files = False
+                else:
+                    # Default to files if no specific database keywords
+                    use_database = False
+                    use_files = True
+            
+            print(f"🔍 Debug - Selected table: {selected_table}")
+            print(f"🔍 Debug - Has database keywords: {has_database_keywords}")
+            print(f"🔍 Debug - Input data count: {len(input_data)}")
+            print(f"🔍 Debug - Use database: {use_database}")
+            print(f"🔍 Debug - Use files: {use_files}")
+            
+            if use_database:
+                # Redirect to database agent
+                if len(input_data) > 0:
+                    print(f"🔍 Debug - Switching from files to database analysis")
+                
+                # Redirect to database agent
+                from src.core.agents.advanced_database_agent import AdvancedDatabaseAgent
+                from src.ui.components.table_selector import get_db_agent
+                
+                # Try to get existing agent from session state, or create new one
+                db_agent = get_db_agent()
+                if db_agent is None:
+                    db_agent = AdvancedDatabaseAgent()
+                
+                # If user is asking about connection status, show it first
+                if 'conectado' in user_query.lower() or 'conexión' in user_query.lower() or 'connection' in user_query.lower():
+                    status = db_agent.get_connection_status()
+                    if status['is_connected']:
+                        response = f"✅ **Conectado a la base de datos**\n\n"
+                        response += f"• **Base de datos**: {status['connection_details'].get('database', 'N/A')}\n"
+                        response += f"• **Host**: {status['connection_details'].get('host', 'N/A')}\n"
+                        response += f"• **Puerto**: {status['connection_details'].get('port', 'N/A')}\n"
+                        response += f"• **Usuario**: {status['connection_details'].get('user', 'N/A')}\n"
+                        response += f"• **Tablas disponibles**: {len(status['available_tables'])}\n\n"
+                        
+                        if status['available_tables']:
+                            response += "**Tablas encontradas:**\n"
+                            for table in status['available_tables']:
+                                response += f"• {table}\n"
+                        
+                        return {
+                            'response': response,
+                            'code': '',
+                            'output_image_paths': []
+                        }
+                    else:
+                        return {
+                            'response': f"❌ **No conectado a la base de datos**\n\nError: {status['error_message']}\n\nEl agente intentará conectarse automáticamente cuando hagas una pregunta sobre la base de datos.",
+                            'code': '',
+                            'output_image_paths': []
+                        }
+                
+                # If a table is selected, modify the query to include the table name
+                if selected_table and not any(table.lower() in user_query.lower() for table in ['production_orders', 'production_stops']):
+                    user_query = f"Analiza la tabla {selected_table}: {user_query}"
+                
+                print(f"🔍 Debug - Selected table: {selected_table}")
+                print(f"🔍 Debug - Modified query: {user_query}")
+                print(f"🔍 Debug - Redirecting to database agent")
+                
+                result = db_agent.process_query(user_query)
+                print(f"🔍 Debug - Database agent result: {result}")
+                return result
+            
+            # Use file-based analysis
+            if selected_table is not None:
+                print(f"🔍 Debug - Switching from database to file analysis")
+            
             # Prepare the prompt with context
             context = self._prepare_context(input_data)
             print(f"Context prepared, length: {len(context)}")
+            
+            # Prepare chat history context
+            chat_history_context = ""
+            history_to_use = chat_history if chat_history is not None else self.chat_history
+            if history_to_use:
+                chat_history_context = "\n**Historial de Conversación:**\n"
+                for i, message in enumerate(history_to_use[-5:], 1):  # Last 5 messages
+                    role = "Usuario" if message.role == "user" else "Asistente"
+                    chat_history_context += f"{i}. {role}: {message.content[:200]}...\n"
+                chat_history_context += "\n"
             
             # Create the full prompt
             full_prompt = f"""
@@ -53,6 +153,8 @@ class PythonAnalysisAgent:
 Contexto de los datos:
 {context}
 
+{chat_history_context}
+
 Consulta del usuario: {user_query}
 
 **INSTRUCCIONES IMPORTANTES:**
@@ -60,6 +162,8 @@ Consulta del usuario: {user_query}
 - El código debe estar en bloques markdown con ```python al inicio y ``` al final.
 - Para gráficas, usa plotly y almacena las figuras en la lista `plotly_figures`.
 - Para análisis estadísticos, usa print() para mostrar los resultados.
+- Si el usuario pregunta sobre preguntas anteriores, consulta el historial de conversación.
+- Mantén contexto de las preguntas y respuestas anteriores.
 
 Por favor, analiza los datos y responde a la consulta del usuario. Si necesitas ejecutar código Python, inclúyelo en tu respuesta.
 """
@@ -136,25 +240,32 @@ Necesitas generar código Python para crear la visualización solicitada. Respon
         
         for data in input_data:
             try:
-                # Load and analyze the dataset
-                df = file_manager.load_dataframe(data.data_path.name)
+                # Handle both file-based and database data
+                if data.source == "database":
+                    # Database data is already loaded as DataFrame
+                    df = data.data
+                    source_info = f"Base de datos: {data.name}"
+                else:
+                    # File-based data needs to be loaded
+                    df = file_manager.load_dataframe(data.name)
+                    source_info = f"Archivo: {data.name}"
                 
                 context_parts.append(f"""
-Dataset: {data.variable_name}
-Archivo: {data.data_path.name}
-Descripción: {data.data_description}
+Dataset: {data.name}
+Origen: {source_info}
+Descripción: {data.description}
 Forma: {df.shape}
 Columnas: {list(df.columns)}
 Tipos de datos: {df.dtypes.to_dict()}
 Primeras filas:
 {df.head().to_string()}
 
-**IMPORTANTE**: Usa '{data.variable_name}' como nombre de la variable para acceder a este dataset en tu código Python.
+**IMPORTANTE**: Usa '{data.name}' como nombre de la variable para acceder a este dataset en tu código Python.
 """)
             except Exception as e:
                 context_parts.append(f"""
-Dataset: {data.variable_name}
-Archivo: {data.data_path.name}
+Dataset: {data.name}
+Origen: {data.source}
 Error al cargar: {str(e)}
 """)
         

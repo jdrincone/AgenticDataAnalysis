@@ -9,9 +9,10 @@ import pandas as pd
 @dataclass
 class InputData:
     """Represents input data for analysis."""
-    variable_name: str
-    data_path: Path
-    data_description: str = ""
+    name: str
+    data: pd.DataFrame
+    description: str = ""
+    source: str = "file"  # Only "file" now
 
 @dataclass
 class ChatMessage:
@@ -105,6 +106,8 @@ class AppState:
         """Set debug mode."""
         self._debug_mode = enabled
     
+
+    
     def get_dataset_description(self, filename: str) -> str:
         """Get description for a specific dataset."""
         return self._data_dictionary.get(filename, {}).get('description', '')
@@ -121,14 +124,25 @@ class AppState:
     
     def get_input_data_list(self, uploads_dir: Path) -> List[InputData]:
         """Get list of InputData objects for selected files."""
-        return [
-            InputData(
-                variable_name=f"{file.split('.')[0]}", 
-                data_path=uploads_dir / file, 
-                data_description=self.get_dataset_description(file)
-            ) 
-            for file in self._selected_files
-        ]
+        input_data_list = []
+        
+        # Add file-based data
+        for file in self._selected_files:
+            try:
+                import pandas as pd
+                df = pd.read_csv(uploads_dir / file)
+                input_data_list.append(
+                    InputData(
+                        name=file,
+                        data=df,
+                        description=self.get_dataset_description(file),
+                        source="file"
+                    )
+                )
+            except Exception as e:
+                print(f"Error loading file {file}: {str(e)}")
+        
+        return input_data_list
     
     def reset(self):
         """Reset all state to initial values."""

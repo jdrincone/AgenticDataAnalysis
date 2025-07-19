@@ -15,9 +15,13 @@ def render_chat_interface(
     """Render the chat interface."""
     st.subheader("💬 Interfaz de Chat")
     
-    if not selected_files:
-        st.info("Por favor, selecciona archivos para analizar en la pestaña de Gestión de Datos primero.")
-        return
+    # Check for file data
+    has_file_data = len(selected_files) > 0
+    
+    print(f"Chat interface - has_file_data: {has_file_data}")
+    
+    # Always show chat interface - agent can connect to database directly
+    # No need to check for data sources here
     
     # Chat container
     chat_container = st.container(height=500)

@@ -17,6 +17,7 @@ from src.ui.components.header import render_header
 from src.ui.components.file_upload import render_file_upload, render_file_selector
 from src.ui.components.chat_interface import render_chat_interface, render_debug_section
 from src.ui.components.pdf_export import render_pdf_export_button
+from src.ui.components.table_selector import render_table_selector, get_selected_table, get_db_agent
 
 def load_css():
     """Load custom CSS styles."""
@@ -53,11 +54,6 @@ def handle_chat_submit(user_query: str):
         app_state = st.session_state.app_state
         print(f"App state initialized, selected files: {len(app_state.selected_files)}")
         
-        if not app_state.has_selected_files():
-            print("No files selected")
-            st.error("No hay archivos seleccionados para analizar.")
-            return
-        
         # Add user message to chat history
         app_state.add_chat_message(ChatMessage(
             role="user",
@@ -65,13 +61,16 @@ def handle_chat_submit(user_query: str):
         ))
         print("User message added to chat history")
         
+        # Process query with standard agent
+        print("Using standard agent...")
         # Prepare input data using AppState
         input_data_list = app_state.get_input_data_list(file_manager.uploads_dir)
         print(f"Input data list prepared: {len(input_data_list)} items")
+        for i, data in enumerate(input_data_list):
+            print(f"  Data {i}: {data.name} (source: {data.source})")
         
-        # Process query
-        print("Calling agent.process_query...")
-        result = st.session_state.agent.process_query(user_query, input_data_list)
+        result = st.session_state.agent.process_query(user_query, input_data_list, app_state.chat_history)
+        
         print(f"Agent returned result: {result}")
         
         # Add assistant response to chat history
@@ -109,14 +108,12 @@ def render_data_management_tab():
     
     app_state = st.session_state.app_state
     
-    # Data source selector
-    data_source = st.radio(
-        "¿Qué tipo de datos deseas analizar?",
-        ["Archivos CSV", "Base de datos"],
-        horizontal=True
-    )
+    # Create tabs for different data sources
+    tab1, tab2 = st.tabs(["📁 Archivos CSV", "🗄️ Base de Datos"])
     
-    if data_source == "Archivos CSV":
+    with tab1:
+        st.subheader("📁 Gestión de Archivos CSV")
+        
         # File upload section
         uploaded_files = render_file_upload()
         
@@ -190,16 +187,16 @@ def render_data_management_tab():
                 else:
                     st.error("Error al guardar las descripciones")
     
-    elif data_source == "Base de datos":
-        st.subheader("Conexión a base de datos")
-        st.markdown("""
-            <div style='display: flex; justify-content: center; align-items: center; margin: 2rem 0;'>
-        """, unsafe_allow_html=True)
+    with tab2:
+        st.subheader("🗄️ Análisis de Base de Datos")
+        st.info("Selecciona una tabla para realizar análisis experto con el analista científico de datos.")
         
-        if st.button("🔗 Conectar a BD", type="primary", use_container_width=True):
-            st.info("Funcionalidad próximamente disponible")
+        # Render table selector
+        selected_table = render_table_selector()
         
-        st.markdown("</div>", unsafe_allow_html=True)
+        if selected_table:
+            st.success(f"✅ Tabla **{selected_table}** seleccionada para análisis experto")
+            st.info("💡 Ahora puedes hacer preguntas específicas sobre esta tabla en la pestaña de Chat.")
 
 def render_chat_tab():
     """Render the chat interface tab using AppState."""
@@ -207,9 +204,39 @@ def render_chat_tab():
     
     app_state = st.session_state.app_state
     
-    if not app_state.has_selected_files():
-        st.info("Por favor, selecciona archivos para analizar en la pestaña de Gestión de Datos primero.")
-        return
+    # Debug: Check file data status
+    print(f"Chat tab - has_selected_files: {app_state.has_selected_files()}")
+    print(f"Chat tab - selected_files count: {len(app_state.selected_files)}")
+    print(f"Chat tab - selected_files: {app_state.selected_files}")
+    print(f"Chat tab - session_state keys: {list(st.session_state.keys())}")
+    if 'file_selector_multiselect' in st.session_state:
+        print(f"Chat tab - file_selector_multiselect: {st.session_state.file_selector_multiselect}")
+    
+    # Show current data sources
+    if app_state.selected_files:
+        st.info(f"📁 Archivos seleccionados: {', '.join(app_state.selected_files)}")
+    
+    # Show selected table for database analysis
+    selected_table = get_selected_table()
+    if selected_table:
+        st.success(f"🗄️ Tabla seleccionada para análisis: **{selected_table}**")
+        st.info("💡 **Modo Analista Experto Activado** - El agente actuará como un analista científico de datos senior.")
+    
+    # Always show chat interface
+    if not app_state.has_selected_files() and not selected_table:
+        st.info("💡 **Capacidades del Agente:**")
+        st.info("• Puedes hacer preguntas sobre archivos CSV cargados")
+        st.info("• Puedes hacer consultas SQL directas a la base de datos PostgreSQL")
+        st.info("• Puedes solicitar análisis estadísticos y visualizaciones avanzadas")
+        st.info("• El agente se conectará automáticamente a la base de datos cuando sea necesario")
+        
+        st.info("**Ejemplos de preguntas:**")
+        st.info("• 'Muéstrame las tablas disponibles en la base de datos'")
+        st.info("• 'Analiza la tabla production_orders'")
+        st.info("• 'Ejecuta esta consulta SQL: SELECT * FROM users LIMIT 10'")
+        st.info("• 'Crea un gráfico avanzado de las ventas por mes'")
+        
+        st.info("🚀 **¡Puedes hacer preguntas directamente! El agente se conectará a la base de datos automáticamente.**")
     
     render_chat_interface(
         agent=st.session_state.agent,
