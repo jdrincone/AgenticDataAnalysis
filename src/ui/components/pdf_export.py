@@ -108,7 +108,7 @@ class PDFExporter:
             rightIndent=30,
             textColor=self.colors['black'],
             fontName='Courier',
-            backColor=colors.HexColor('#F8F9FA')
+            backColor=self.colors['light_gray']
         ))
         
         return styles

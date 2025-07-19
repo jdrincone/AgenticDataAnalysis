@@ -169,8 +169,15 @@ import os
 # Initialize plotly_figures list
 plotly_figures = []
 
-# Set plotly template
+# Set plotly template with corporate colors
 pio.templates.default = "plotly_white"
+
+# Define corporate color palette from config
+corporate_colors = {config.CORPORATE_COLORS}
+
+# Set default color sequence for plotly
+import plotly.colors as pc
+pc.DEFAULT_PLOTLY_COLORS = corporate_colors
 """
             
             # Execute initialization code

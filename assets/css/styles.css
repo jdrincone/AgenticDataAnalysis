@@ -16,10 +16,20 @@
     --info-blue: #1976D2;
 }
 
-/* Global Styles */
+/* Import Google Fonts - Professional Typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Global Styles - Professional Font */
+body, .main, .stApp, * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11' !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+}
+
 body, .main {
     background: var(--light-gray) !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Header Styles */
@@ -36,16 +46,20 @@ body, .main {
     color: var(--white) !important;
     font-size: 2.3rem !important;
     font-weight: 700 !important;
+    font-family: 'Inter', sans-serif !important;
     text-shadow: 0 2px 4px rgba(0,0,0,0.10);
     margin: 0 !important;
-    letter-spacing: 1px;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
 }
 
 .main-header p {
     color: var(--very-light-green);
     font-size: 1.1rem;
     font-weight: 400;
+    font-family: 'Inter', sans-serif !important;
     margin: 0.5rem 0 0 0;
+    letter-spacing: 0.01em !important;
 }
 
 /* Button Styles */
@@ -57,6 +71,7 @@ body, .main {
     padding: 12px 28px !important;
     font-weight: 600 !important;
     font-size: 15px !important;
+    font-family: 'Inter', sans-serif !important;
     box-shadow: 0 2px 8px var(--shadow) !important;
     transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
     text-transform: uppercase !important;
@@ -79,6 +94,7 @@ body, .main {
     padding: 7px 18px !important;
     font-weight: 500 !important;
     font-size: 14px !important;
+    font-family: 'Inter', sans-serif !important;
     box-shadow: 0 1px 4px var(--shadow) !important;
     transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
 }
@@ -108,9 +124,11 @@ body, .main {
     padding: 12px 24px !important;
     font-weight: 600 !important;
     font-size: 15px !important;
+    font-family: 'Inter', sans-serif !important;
     color: var(--gray) !important;
     margin-right: 4px !important;
     transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
+    letter-spacing: 0.01em !important;
 }
 
 .stTabs [data-baseweb="tab"][aria-selected="true"] {
@@ -126,6 +144,18 @@ body, .main {
     border-color: var(--primary-green) !important;
 }
 
+/* Tab Bar Bottom Border - Remove red/pink colors */
+.stTabs [data-baseweb="tab-list"] {
+    border-bottom: 3px solid var(--primary-green) !important;
+    background: var(--white) !important;
+}
+
+/* Remove any red/pink colors from tab indicators */
+.stTabs [data-baseweb="tab-list"]::after,
+.stTabs [data-baseweb="tab-list"]::before {
+    background: var(--primary-green) !important;
+}
+
 /* Alert Messages */
 .stAlert, .st-emotion-cache-1wmy9hl {
     background: var(--success-bg) !important;
@@ -136,7 +166,9 @@ body, .main {
     box-shadow: 0 2px 12px var(--shadow) !important;
     font-weight: 600 !important;
     font-size: 1.1rem !important;
+    font-family: 'Inter', sans-serif !important;
     margin-bottom: 1.2rem !important;
+    letter-spacing: 0.01em !important;
 }
 
 /* Input Styles */
@@ -145,6 +177,7 @@ body, .main {
     border-radius: 8px !important;
     padding: 12px !important;
     font-size: 15px !important;
+    font-family: 'Inter', sans-serif !important;
     transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
 }
 
@@ -160,6 +193,7 @@ body, .main {
     background: var(--very-light-green) !important;
     padding: 2rem !important;
     text-align: center !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
 /* Chat Interface */
@@ -169,12 +203,14 @@ body, .main {
     padding: 1rem !important;
     margin-bottom: 1rem !important;
     box-shadow: 0 2px 8px var(--shadow) !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
 .stChatInput {
     border: 2px solid var(--primary-green) !important;
     border-radius: 12px !important;
     background: var(--white) !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
 /* Dataframe Styling */
@@ -182,6 +218,7 @@ body, .main {
     border-radius: 8px !important;
     overflow: hidden !important;
     box-shadow: 0 2px 8px var(--shadow) !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
 /* Plotly Charts */
@@ -189,4 +226,36 @@ body, .main {
     border-radius: 12px !important;
     overflow: hidden !important;
     box-shadow: 0 4px 16px var(--shadow) !important;
+}
+
+/* Professional Typography for all text elements */
+p, h1, h2, h3, h4, h5, h6, span, div, label, li, td, th {
+    font-family: 'Inter', sans-serif !important;
+    letter-spacing: 0.01em !important;
+}
+
+/* Specific font weights for different elements */
+h1, h2, h3 {
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+}
+
+h4, h5, h6 {
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+}
+
+p, span, div, label {
+    font-weight: 400 !important;
+}
+
+/* Strong/bold text */
+strong, b {
+    font-weight: 600 !important;
+}
+
+/* Code elements */
+code, pre {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-weight: 500 !important;
 } 

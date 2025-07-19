@@ -47,6 +47,9 @@ class AppConfig:
     SUCCESS_COLOR: str = "#1C8074"
     ERROR_COLOR: str = "#D32F2F"
     
+    # Corporate Color Palette
+    CORPORATE_COLORS: List[str] = None
+    
     # File upload settings
     ALLOWED_EXTENSIONS: List[str] = None
     
@@ -54,6 +57,16 @@ class AppConfig:
         """Initialize derived settings."""
         if self.ALLOWED_EXTENSIONS is None:
             self.ALLOWED_EXTENSIONS = [".csv", ".xlsx", ".xls"]
+        
+        if self.CORPORATE_COLORS is None:
+            self.CORPORATE_COLORS = [
+                "#1C8074",  # Primary green (PANTONE 3295 U)
+                "#666666",  # Gray (PANTONE 426 U)
+                "#1A494C",  # Dark green (PANTONE 175-16 U)
+                "#94AF92",  # Light green (PANTONE 7494 U)
+                "#E6ECD8",  # Very light green (PANTONE 152-2 U)
+                "#C9C9C9"   # Light gray (PANTONE COLOR GRAY 2 U)
+            ]
         
         # Create necessary directories
         self.UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
