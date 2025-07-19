@@ -1,0 +1,27 @@
+// Flujo General Okuo IA DataLab
+digraph {
+	rankdir=LR size="12,6"
+	A [label="Inicio / Login" fillcolor="#1C8074" fontcolor=white shape=ellipse style=filled]
+	B [label="Gestión de Datos" fillcolor="#e0e0e0" shape=ellipse style=filled]
+	C [label="Carga y selección de archivos" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	D [label="Botón Conectar a BD" fillcolor="#e0e0e0" shape=ellipse style=filled]
+	E [label="Describe datasets" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	F [label="Selecciona archivos a analizar" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	G [label="Funcionalidad próximamente disponible" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	H [label="Interfaz de Chat" fillcolor="#e0e0e0" shape=ellipse style=filled]
+	I [label="Usuario hace pregunta" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	J [label="Chatbot responde y muestra visualizaciones" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	K [label="Depuración (opcional)" fillcolor="#e0e0e0" shape=ellipse style=filled]
+	L [label="Ver pasos intermedios, código y salidas" fillcolor="#f5f5f5" shape=ellipse style=filled]
+	A -> B
+	B -> C [label="Selecciona CSV"]
+	B -> D [label="Selecciona BD"]
+	C -> E
+	C -> F
+	D -> G
+	F -> H
+	H -> I
+	I -> J
+	J -> K
+	K -> L
+}

@@ -1,0 +1,192 @@
+/* Corporate CSS Styles for Okuo IA DataLab */
+
+:root {
+    --primary-green: #1C8074;
+    --dark-green: #1A494C;
+    --light-green: #94AF92;
+    --very-light-green: #E6ECD8;
+    --gray: #666666;
+    --light-gray: #F5F6F8;
+    --white: #FFFFFF;
+    --shadow: rgba(28, 128, 116, 0.10);
+    --success-green: #1C8074;
+    --success-bg: #FFFFFF;
+    --success-text: #1A494C;
+    --error-red: #D32F2F;
+    --info-blue: #1976D2;
+}
+
+/* Global Styles */
+body, .main {
+    background: var(--light-gray) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header Styles */
+.main-header {
+    background: var(--primary-green) !important;
+    padding: 2rem 0 1.2rem 0;
+    margin: -2rem -2rem 2rem -2rem;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 8px 32px var(--shadow);
+    text-align: center;
+}
+
+.main-header h1 {
+    color: var(--white) !important;
+    font-size: 2.3rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.10);
+    margin: 0 !important;
+    letter-spacing: 1px;
+}
+
+.main-header p {
+    color: var(--very-light-green);
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Button Styles */
+.stButton > button {
+    background: var(--primary-green) !important;
+    color: var(--white) !important;
+    border: none !important;
+    border-radius: 14px !important;
+    padding: 12px 28px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    box-shadow: 0 2px 8px var(--shadow) !important;
+    transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.stButton > button:hover {
+    background: var(--dark-green) !important;
+    box-shadow: 0 6px 18px var(--shadow) !important;
+    transform: translateY(-2px) scale(1.03) !important;
+}
+
+/* Selection Chips */
+.st-emotion-cache-1v0mbdj, .st-emotion-cache-7ym5gk, .st-emotion-cache-1wivap2,
+.st-emotion-cache-13ejsyy, .st-emotion-cache-1hbq8b1, .st-emotion-cache-1n76uvr, .st-emotion-cache-1n6xq8e {
+    background: var(--primary-green) !important;
+    color: var(--white) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    padding: 7px 18px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    box-shadow: 0 1px 4px var(--shadow) !important;
+    transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
+}
+
+.st-emotion-cache-1v0mbdj:hover, .st-emotion-cache-7ym5gk:hover, .st-emotion-cache-1wivap2:hover,
+.st-emotion-cache-13ejsyy:hover, .st-emotion-cache-1hbq8b1:hover, .st-emotion-cache-1n76uvr:hover, .st-emotion-cache-1n6xq8e:hover {
+    background: var(--dark-green) !important;
+    color: var(--white) !important;
+    box-shadow: 0 4px 12px var(--shadow) !important;
+}
+
+/* Cards and Containers */
+.st-emotion-cache-1r6slb0, .st-emotion-cache-1v0mbdj, .stTabs [data-baseweb="tab-panel"] {
+    background: var(--white) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 2px 12px var(--shadow) !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.2rem !important;
+}
+
+/* Tab Styles */
+.stTabs [data-baseweb="tab"] {
+    background: var(--white) !important;
+    border-radius: 12px 12px 0 0 !important;
+    border: 2px solid var(--light-green) !important;
+    border-bottom: none !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    color: var(--gray) !important;
+    margin-right: 4px !important;
+    transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
+}
+
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    background: var(--primary-green) !important;
+    color: var(--white) !important;
+    border-color: var(--primary-green) !important;
+    box-shadow: 0 4px 15px var(--shadow) !important;
+    transform: translateY(-2px) !important;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    background: var(--very-light-green) !important;
+    border-color: var(--primary-green) !important;
+}
+
+/* Alert Messages */
+.stAlert, .st-emotion-cache-1wmy9hl {
+    background: var(--success-bg) !important;
+    color: var(--success-text) !important;
+    border-left: 8px solid var(--success-green) !important;
+    border-radius: 14px !important;
+    padding: 18px 24px !important;
+    box-shadow: 0 2px 12px var(--shadow) !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    margin-bottom: 1.2rem !important;
+}
+
+/* Input Styles */
+.stTextInput > div > div > input {
+    border: 2px solid var(--light-green) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    font-size: 15px !important;
+    transition: all 0.2s cubic-bezier(.4,0,.2,1) !important;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: var(--primary-green) !important;
+    box-shadow: 0 0 0 3px rgba(28, 128, 116, 0.10) !important;
+}
+
+/* File Uploader */
+.stFileUploader > div {
+    border: 2px dashed var(--primary-green) !important;
+    border-radius: 12px !important;
+    background: var(--very-light-green) !important;
+    padding: 2rem !important;
+    text-align: center !important;
+}
+
+/* Chat Interface */
+.stChatMessage {
+    background: var(--white) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    box-shadow: 0 2px 8px var(--shadow) !important;
+}
+
+.stChatInput {
+    border: 2px solid var(--primary-green) !important;
+    border-radius: 12px !important;
+    background: var(--white) !important;
+}
+
+/* Dataframe Styling */
+.dataframe {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px var(--shadow) !important;
+}
+
+/* Plotly Charts */
+.js-plotly-plot {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 16px var(--shadow) !important;
+} 

@@ -1,0 +1,12 @@
+flowchart TD
+    A[Inicio / Login] --> B[Gestión de Datos]
+    B -->|Selecciona CSV| C[Carga y selección de archivos]
+    B -->|Selecciona BD| D[Botón Conectar a BD]
+    C --> E[Describe datasets]
+    C --> F[Selecciona archivos a analizar]
+    D --> G[Funcionalidad próximamente disponible]
+    F --> H[Interfaz de Chat]
+    H --> I[Usuario hace pregunta]
+    I --> J[Chatbot responde y muestra visualizaciones]
+    J --> K[Depuración (opcional)]
+    K --> L[Ver pasos intermedios, código y salidas]
