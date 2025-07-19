@@ -9,8 +9,9 @@ import subprocess
 
 def check_python_version():
     """Check if Python version is compatible."""
-    if sys.version_info < (3, 8):
-        print("❌ Error: Python 3.8 or higher is required")
+    if sys.version_info < (3, 12):
+        print("❌ Error: Python 3.12 or higher is required")
+        print(f"Current version: {sys.version_info.major}.{sys.version_info.minor}")
         sys.exit(1)
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor} detected")
 
@@ -49,6 +50,7 @@ def create_directories():
     directories = [
         "assets/uploads",
         "assets/images/plotly_figures/pickle",
+        "temp_pdf_images",
         "logs"
     ]
     

@@ -203,8 +203,13 @@ class PDFExporter:
                             if not hasattr(self, 'temp_files'):
                                 self.temp_files = []
                             self.temp_files.append(img_temp_path)
+                        else:
+                            st.warning(f"No se pudo crear la imagen temporal para {image_path}")
+                    else:
+                        st.warning(f"No se pudo cargar la figura de plotly para {image_path}")
                 except Exception as e:
                     st.warning(f"No se pudo incluir la imagen {image_path}: {str(e)}")
+                    print(f"Debug - Error details for {image_path}: {e}")
             
             story.append(Spacer(1, 20))
     
@@ -239,9 +244,9 @@ class PDFExporter:
     def _save_plotly_figure(self, fig, filename: str) -> str:
         """Save plotly figure as temporary image file."""
         try:
-            # Create temp directory in project
-            temp_dir = Path("temp_pdf_images")
-            temp_dir.mkdir(exist_ok=True)
+            # Create temp directory in project using config paths
+            temp_dir = config.BASE_DIR / "temp_pdf_images"
+            temp_dir.mkdir(parents=True, exist_ok=True)
             
             import uuid
             unique_id = str(uuid.uuid4())
@@ -250,9 +255,18 @@ class PDFExporter:
             # Save as PNG with high quality
             fig.write_image(str(temp_path), format='png', width=800, height=600, scale=2)
             
+            # Verify the file was created
+            if not temp_path.exists():
+                raise FileNotFoundError(f"Failed to create image file: {temp_path}")
+            
             return str(temp_path)
         except Exception as e:
             st.error(f"Error saving plotly figure: {str(e)}")
+            print(f"Debug - Current working directory: {os.getcwd()}")
+            print(f"Debug - Temp directory path: {config.BASE_DIR / 'temp_pdf_images'}")
+            print(f"Debug - Temp directory exists: {(config.BASE_DIR / 'temp_pdf_images').exists()}")
+            print(f"Debug - Config BASE_DIR: {config.BASE_DIR}")
+            print(f"Debug - Config BASE_DIR exists: {config.BASE_DIR.exists()}")
             return None
     
     def _add_intermediate_outputs(self, story: List, agent: PythonAnalysisAgent):
@@ -287,43 +301,48 @@ class PDFExporter:
         # Initialize temp files list
         self.temp_files = []
         
-        # Create PDF document
-        doc = SimpleDocTemplate(
-            filename,
-            pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=72
-        )
+        try:
+            # Create PDF document
+            doc = SimpleDocTemplate(
+                filename,
+                pagesize=A4,
+                rightMargin=72,
+                leftMargin=72,
+                topMargin=72,
+                bottomMargin=72
+            )
+            
+            story = []
+            
+            # Add header
+            self._create_header(story)
+            
+            # Add executive summary instead of full conversation
+            self._add_executive_summary(story, agent)
+            
+            # Build PDF
+            doc.build(story)
         
-        story = []
-        
-        # Add header
-        self._create_header(story)
-        
-        # Add executive summary instead of full conversation
-        self._add_executive_summary(story, agent)
-        
-        # Build PDF
-        doc.build(story)
-        
-        # Clean up temp files after PDF is built
-        for temp_file in self.temp_files:
-            try:
-                if os.path.exists(temp_file):
-                    os.remove(temp_file)
-            except Exception as e:
-                print(f"Warning: Could not remove temp file {temp_file}: {e}")
-        
-        # Clean up temp directory
-        temp_dir = Path("temp_pdf_images")
-        if temp_dir.exists():
-            try:
-                import shutil
-                shutil.rmtree(temp_dir)
-            except Exception as e:
-                print(f"Warning: Could not remove temp directory {temp_dir}: {e}")
+        except Exception as e:
+            print(f"Error during PDF generation: {e}")
+            raise e
+        finally:
+            # Clean up temp files after PDF is built
+            for temp_file in self.temp_files:
+                try:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                except Exception as e:
+                    print(f"Warning: Could not remove temp file {temp_file}: {e}")
+            
+            # Clean up temp directory
+            temp_dir = config.BASE_DIR / "temp_pdf_images"
+            if temp_dir.exists():
+                try:
+                    import shutil
+                    shutil.rmtree(temp_dir)
+                except Exception as e:
+                    print(f"Warning: Could not remove temp directory {temp_dir}: {e}")
         
         return filename
 
